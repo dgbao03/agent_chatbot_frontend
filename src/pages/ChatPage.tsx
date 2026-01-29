@@ -58,7 +58,10 @@ export function ChatPage() {
         role: msg.role as 'user' | 'assistant',
         content: msg.content,
         intent: msg.intent as 'PPTX' | 'GENERAL' | undefined,
-        // Add other fields from metadata if needed
+        // Extract PPTX-specific fields from metadata
+        pages: msg.metadata?.pages as PageContent[] | undefined,
+        total_pages: msg.metadata?.total_pages as number | undefined,
+        slide_id: msg.metadata?.slide_id as string | undefined,
       }))
       setMessages(uiMessages)
     }
@@ -77,16 +80,16 @@ export function ChatPage() {
         setCurrentSlidePages(lastPptxMessage.pages)
         setShowSlide(true)
         
-        // Fetch slide_id và versions
+        // Fetch presentation_id và versions
         if (lastPptxMessage.slide_id) {
           setCurrentSlideId(lastPptxMessage.slide_id)
           fetchSlideVersions(lastPptxMessage.slide_id, null)
-        } else {
-          // Nếu không có slide_id trong message, fetch active slide
-          slideService.fetchActiveSlideId().then(slideId => {
-            if (slideId) {
-              setCurrentSlideId(slideId)
-              fetchSlideVersions(slideId, null)
+        } else if (selectedConversationId) {
+          // Nếu không có presentation_id trong message, fetch active presentation
+          slideService.fetchActivePresentationId(selectedConversationId).then(presentationId => {
+            if (presentationId) {
+              setCurrentSlideId(presentationId)
+              fetchSlideVersions(presentationId, null)
             }
           })
         }
@@ -116,50 +119,19 @@ export function ChatPage() {
     setIsLoading(true)
 
     try {
-      // Save user message to database
-      const { data: userMsgData, error: userError } = await messageService.createMessage({
-        conversation_id: selectedConversationId,
-        role: 'user',
-        content: userInput,
-        intent: 'GENERAL'
-      })
-
-      if (userError || !userMsgData) {
-        throw new Error(userError || 'Failed to save user message')
-      }
-
-      // Add user message to UI
+      // Add user message to UI (optimistic update)
       const userMessage: Message = {
-        id: userMsgData.id,
+        id: Date.now().toString(), // Temporary ID for UI
         role: 'user',
         content: userInput
       }
       setMessages(prev => [...prev, userMessage])
 
-      // Get assistant response from backend
-      const assistantMessage = await chatService.sendMessage(userInput)
+      // Backend will save both user and assistant messages
+      const assistantMessage = await chatService.sendMessage(userInput, selectedConversationId)
 
-      // Save assistant message to database
-      const { data: assistantMsgData, error: assistantError } = await messageService.createMessage({
-        conversation_id: selectedConversationId,
-        role: 'assistant',
-        content: assistantMessage.content,
-        intent: assistantMessage.intent as 'PPTX' | 'GENERAL' | undefined,
-        metadata: {
-          pages: assistantMessage.pages || null,
-          slide_id: assistantMessage.slide_id || null
-        }
-      })
-
-      if (assistantError || !assistantMsgData) {
-        throw new Error(assistantError || 'Failed to save assistant message')
-      }
-
-      // Add assistant message to UI
-      setMessages(prev => [...prev, {
-        ...assistantMessage,
-        id: assistantMsgData.id
-      }])
+      // Add assistant message to UI (backend already saved it)
+      setMessages(prev => [...prev, assistantMessage])
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred'
       const errorMsg: Message = {
@@ -181,16 +153,16 @@ export function ChatPage() {
     setShowSlide(true)
     setShowChatOnMobile(false)
     
-    // Fetch slide_id và versions
+    // Fetch presentation_id và versions
     if (message.slide_id) {
       setCurrentSlideId(message.slide_id)
       await fetchSlideVersions(message.slide_id, null)
-    } else {
-      // Fetch active slide_id nếu không có trong message
-      const slideId = await slideService.fetchActiveSlideId()
-      if (slideId) {
-        setCurrentSlideId(slideId)
-        await fetchSlideVersions(slideId, null)
+    } else if (selectedConversationId) {
+      // Fetch active presentation_id nếu không có trong message
+      const presentationId = await slideService.fetchActivePresentationId(selectedConversationId)
+      if (presentationId) {
+        setCurrentSlideId(presentationId)
+        await fetchSlideVersions(presentationId, null)
       }
     }
   }

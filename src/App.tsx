@@ -39,7 +39,7 @@ function AppRoutes() {
       <Route path="/" element={<RootRedirect />} />
     </Routes>
   )
-}
+    }
 
 function App() {
   return (

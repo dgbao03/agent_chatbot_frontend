@@ -1,16 +1,26 @@
 import { API_URL, VERSION_API_URL } from '../constants'
 import type { Message, VersionInfo, PageContent } from '../types'
+import { supabase } from '../lib/supabase'
 
 export const chatService = {
-  async sendMessage(userInput: string): Promise<Message> {
+  async sendMessage(userInput: string, conversationId: string): Promise<Message> {
+    // Get JWT token from Supabase session
+    const { data: { session } } = await supabase.auth.getSession()
+    
+    if (!session?.access_token) {
+      throw new Error('Not authenticated. Please login again.')
+    }
+
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
       },
       body: JSON.stringify({
         start_event: {
-          user_input: userInput
+          user_input: userInput,
+          conversation_id: conversationId
         }
       }),
     })
@@ -61,40 +71,79 @@ export const chatService = {
 }
 
 export const slideService = {
-  async fetchActiveSlideId(): Promise<string | null> {
+  async fetchActivePresentationId(conversationId: string): Promise<string | null> {
     try {
-      const response = await fetch(`${VERSION_API_URL}/active`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch active slide')
+      const session = await supabase.auth.getSession()
+      const accessToken = session.data.session?.access_token
+
+      if (!accessToken) {
+        throw new Error("User not authenticated")
       }
+
+      const response = await fetch(`${VERSION_API_URL}/active?conversation_id=${conversationId}`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch active presentation')
+      }
+      
       const data = await response.json()
-      return data.active_slide_id
+      return data.active_presentation_id
     } catch (error) {
-      console.error('Error fetching active slide:', error)
+      console.error('Error fetching active presentation:', error)
       return null
     }
   },
 
-  async fetchSlideVersions(slideId: string) {
-    const response = await fetch(`${VERSION_API_URL}/${slideId}/versions`)
+  async fetchSlideVersions(presentationId: string) {
+    const session = await supabase.auth.getSession()
+    const accessToken = session.data.session?.access_token
+
+    if (!accessToken) {
+      throw new Error("User not authenticated")
+    }
+
+    const response = await fetch(`${VERSION_API_URL}/${presentationId}/versions`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    })
+    
     if (!response.ok) {
       throw new Error('Failed to fetch versions')
     }
+    
     const data = await response.json()
     return data.versions || []
   },
 
-  async fetchVersionContent(slideId: string, version: number) {
-    const response = await fetch(`${VERSION_API_URL}/${slideId}/versions/${version}`)
+  async fetchVersionContent(presentationId: string, version: number) {
+    const session = await supabase.auth.getSession()
+    const accessToken = session.data.session?.access_token
+
+    if (!accessToken) {
+      throw new Error("User not authenticated")
+    }
+
+    const response = await fetch(`${VERSION_API_URL}/${presentationId}/versions/${version}`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    })
+    
     if (!response.ok) {
       throw new Error('Failed to fetch version')
     }
+    
     const data = await response.json()
     return data
   },
 
   async matchVersionByHtml(
-    slideId: string, 
+    presentationId: string, 
     versions: VersionInfo[], 
     targetHtml: string
   ): Promise<number | null> {
@@ -104,7 +153,7 @@ export const slideService = {
     const currentVersionInfo = versions.find((v: VersionInfo) => v.is_current)
     if (currentVersionInfo) {
       try {
-        const versionData = await this.fetchVersionContent(slideId, currentVersionInfo.version)
+        const versionData = await this.fetchVersionContent(presentationId, currentVersionInfo.version)
         const normalizedVersion = versionData.html_content.replace(/\s+/g, ' ').trim()
         
         if (normalizedTarget === normalizedVersion) {
@@ -120,7 +169,7 @@ export const slideService = {
       if (versionInfo.is_current) continue
       
       try {
-        const versionData = await this.fetchVersionContent(slideId, versionInfo.version)
+        const versionData = await this.fetchVersionContent(presentationId, versionInfo.version)
         const normalizedVersion = versionData.html_content.replace(/\s+/g, ' ').trim()
         
         if (normalizedTarget === normalizedVersion) {
