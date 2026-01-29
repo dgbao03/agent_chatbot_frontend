@@ -258,16 +258,7 @@ export function ChatPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
               <h2 className="text-xl font-semibold text-gray-900 mb-2">No conversation selected</h2>
-              <p className="text-gray-600 mb-4">Select a conversation from the sidebar or start a new chat</p>
-              <button
-                onClick={() => setIsSidebarOpen(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-                Open Sidebar
-              </button>
+              <p className="text-gray-600">Select a conversation from the sidebar or start a new chat</p>
             </div>
           </div>
         ) : (
