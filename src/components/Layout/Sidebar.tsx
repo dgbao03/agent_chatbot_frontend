@@ -81,25 +81,19 @@ export function Sidebar({
 
   return (
     <>
-      {/* Overlay for mobile */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-          onClick={onClose}
-        />
-      )}
-
       {/* Sidebar */}
       <div
         className={`
           fixed md:relative top-0 left-0 h-full
           bg-gray-50 border-r border-gray-200
-          flex flex-col z-50 overflow-hidden
+          flex flex-col z-50 overflow-hidden flex-shrink-0
           ${isCollapsed ? 'w-[60px]' : 'w-[260px]'}
           ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
         style={{
-          transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease-in-out'
+          transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease-in-out',
+          minWidth: isCollapsed ? '60px' : '260px',
+          maxWidth: isCollapsed ? '60px' : '260px'
         }}
       >
         {isCollapsed ? (
@@ -153,10 +147,17 @@ export function Sidebar({
                   <span className="font-medium text-gray-900 whitespace-nowrap">New chat</span>
                 </button>
                 
-                {/* Collapse button - only show on desktop */}
+                {/* Collapse/Close button */}
                 <button
-                  onClick={() => setIsCollapsed(true)}
-                  className="hidden md:flex p-3 hover:bg-gray-200 rounded-lg transition-colors flex-shrink-0"
+                  onClick={() => {
+                    // Mobile: Close sidebar, Desktop: Collapse sidebar
+                    if (window.innerWidth < 768) {
+                      onClose()
+                    } else {
+                      setIsCollapsed(true)
+                    }
+                  }}
+                  className="p-3 hover:bg-gray-200 rounded-lg transition-colors flex-shrink-0"
                   title="Collapse sidebar"
                 >
                   <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -216,16 +217,6 @@ export function Sidebar({
                 ))
               )}
             </div>
-
-            {/* Close button for mobile */}
-            <button
-              className="md:hidden absolute top-4 right-4 p-2 hover:bg-gray-200 rounded-lg transition-colors"
-              onClick={onClose}
-            >
-              <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
           </div>
         )}
       </div>

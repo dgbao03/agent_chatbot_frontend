@@ -24,7 +24,7 @@ export function ChatContainer({
   onViewSlide
 }: ChatContainerProps) {
   return (
-    <div className={`flex flex-col ${showSlide ? 'w-full md:w-1/2' : 'w-full'} ${showSlide && !showChatOnMobile ? 'hidden md:flex' : 'flex'} transition-all duration-300 border-r border-gray-200`}>
+    <div className={`flex flex-col ${showSlide ? 'w-full md:flex-1 md:min-w-0' : 'w-full'} ${showSlide && !showChatOnMobile ? 'hidden md:flex' : 'flex'} transition-all duration-300 border-r border-gray-200`}>
       <MessageList 
         messages={messages}
         isLoading={isLoading}

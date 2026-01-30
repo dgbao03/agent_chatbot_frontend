@@ -190,11 +190,21 @@ export function ChatPage() {
     setSelectedConversationId(conversationId)
     // Close sidebar on mobile after selection
     setIsSidebarOpen(false)
+    // Reset slide states when switching conversations
+    setShowSlide(false)
+    setCurrentSlidePages([])
+    setCurrentSlideId(null)
+    resetVersions()
   }
 
   const handleNewConversation = () => {
     setSelectedConversationId(null)
     setMessages([])
+    // Reset slide states
+    setShowSlide(false)
+    setCurrentSlidePages([])
+    setCurrentSlideId(null)
+    resetVersions()
   }
 
   return (

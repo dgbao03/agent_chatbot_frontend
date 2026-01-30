@@ -36,7 +36,7 @@ export function SlideViewer({
   if (pages.length === 0) return null
 
   return (
-    <div className={`flex flex-col ${showChatOnMobile ? 'hidden md:flex' : 'flex'} w-full md:w-1/2 bg-gray-50 border-l border-gray-200 transition-all duration-300`}>
+    <div className={`flex flex-col ${showChatOnMobile ? 'hidden md:flex' : 'flex'} w-full md:flex-1 md:min-w-0 bg-gray-50 border-l border-gray-200 transition-all duration-300`}>
       <SlideHeader
         versions={versions}
         currentVersion={currentVersion}
