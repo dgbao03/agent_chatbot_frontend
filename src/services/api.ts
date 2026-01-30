@@ -1,4 +1,4 @@
-import { API_URL, VERSION_API_URL } from '../constants'
+import { API_URL } from '../constants'
 import type { Message, VersionInfo, PageContent } from '../types'
 import { supabase } from '../lib/supabase'
 
@@ -73,25 +73,16 @@ export const chatService = {
 export const slideService = {
   async fetchActivePresentationId(conversationId: string): Promise<string | null> {
     try {
-      const session = await supabase.auth.getSession()
-      const accessToken = session.data.session?.access_token
-
-      if (!accessToken) {
-        throw new Error("User not authenticated")
-      }
-
-      const response = await fetch(`${VERSION_API_URL}/active?conversation_id=${conversationId}`, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
+      const { data, error } = await supabase.rpc('get_active_presentation', {
+        conv_id: conversationId
       })
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch active presentation')
+
+      if (error) {
+        console.error('Error fetching active presentation:', error)
+        return null
       }
-      
-      const data = await response.json()
-      return data.active_presentation_id
+
+      return data // RPC returns UUID directly
     } catch (error) {
       console.error('Error fetching active presentation:', error)
       return null
@@ -99,47 +90,75 @@ export const slideService = {
   },
 
   async fetchSlideVersions(presentationId: string) {
-    const session = await supabase.auth.getSession()
-    const accessToken = session.data.session?.access_token
+    try {
+      const { data, error } = await supabase.rpc('get_presentation_versions', {
+        p_id: presentationId
+      })
 
-    if (!accessToken) {
-      throw new Error("User not authenticated")
-    }
-
-    const response = await fetch(`${VERSION_API_URL}/${presentationId}/versions`, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`
+      if (error) {
+        console.error('Error fetching versions:', error)
+        throw new Error('Failed to fetch versions')
       }
-    })
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch versions')
+
+      return data || []
+    } catch (error) {
+      console.error('Error fetching versions:', error)
+      throw error
     }
-    
-    const data = await response.json()
-    return data.versions || []
   },
 
   async fetchVersionContent(presentationId: string, version: number) {
-    const session = await supabase.auth.getSession()
-    const accessToken = session.data.session?.access_token
+    try {
+      // First, get presentation metadata to check current version
+      const { data: presentation, error: presError } = await supabase
+        .from('presentations')
+        .select('version, total_pages')
+        .eq('id', presentationId)
+        .single()
 
-    if (!accessToken) {
-      throw new Error("User not authenticated")
-    }
-
-    const response = await fetch(`${VERSION_API_URL}/${presentationId}/versions/${version}`, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`
+      if (presError || !presentation) {
+        throw new Error('Presentation not found')
       }
-    })
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch version')
+
+      const currentVersion = presentation.version
+      let pages
+
+      // If requesting current version, get from presentation_pages
+      if (version === currentVersion) {
+        const { data: pagesData, error: pagesError } = await supabase.rpc('get_presentation_pages', {
+          p_id: presentationId
+        })
+
+        if (pagesError) {
+          throw new Error('Failed to fetch current version pages')
+        }
+
+        pages = pagesData
+      } else {
+        // Otherwise get from archived versions
+        const { data: pagesData, error: pagesError } = await supabase.rpc('get_version_pages', {
+          p_id: presentationId,
+          v_num: version
+        })
+
+        if (pagesError) {
+          throw new Error('Failed to fetch archived version pages')
+        }
+
+        pages = pagesData
+      }
+
+      return {
+        presentation_id: presentationId,
+        version: version,
+        pages: pages || [],
+        total_pages: pages?.length || 0,
+        html_content: pages || [] // For backward compatibility
+      }
+    } catch (error) {
+      console.error('Error fetching version content:', error)
+      throw error
     }
-    
-    const data = await response.json()
-    return data
   },
 
   async matchVersionByHtml(
