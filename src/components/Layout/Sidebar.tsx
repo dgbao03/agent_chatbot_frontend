@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { conversationService } from '../../services/database'
 import type { Conversation } from '../../types/database'
+import { UserMenu } from './UserMenu'
 
 interface SidebarProps {
   isOpen: boolean
@@ -99,11 +100,12 @@ export function Sidebar({
         {isCollapsed ? (
           /* Collapsed view - Icon buttons only */
           <div 
-            className="flex flex-col items-center gap-3 p-3 animate-fade-in"
+            className="flex flex-col h-full"
             style={{
               animation: 'fadeIn 0.3s ease-in-out 0.2s both'
             }}
           >
+            <div className="flex-1 flex flex-col items-center gap-3 p-3 overflow-y-auto">
             {/* Expand button */}
             <button
               onClick={() => setIsCollapsed(false)}
@@ -125,6 +127,12 @@ export function Sidebar({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
             </button>
+            </div>
+
+            {/* User Menu - Fixed at bottom */}
+            <div className="flex-shrink-0 p-3 border-t border-gray-200 bg-gray-50">
+              <UserMenu isCollapsed={true} />
+            </div>
           </div>
         ) : (
           /* Expanded view - Full UI */
@@ -216,6 +224,11 @@ export function Sidebar({
                   </button>
                 ))
               )}
+            </div>
+
+            {/* User Menu - Fixed at bottom */}
+            <div className="flex-shrink-0 p-3 border-t border-gray-200 bg-gray-50">
+              <UserMenu isCollapsed={false} />
             </div>
           </div>
         )}
