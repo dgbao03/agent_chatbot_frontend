@@ -11,6 +11,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   signIn: (email: string, password: string) => Promise<{ error: string }>
   signUp: (email: string, password: string, name?: string) => Promise<{ error: string }>
+  signInWithGoogle: () => Promise<{ error: string }>
   signOut: () => Promise<void>
 }
 
@@ -66,6 +67,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // State will be updated automatically via onAuthStateChange
   }
 
+  const signInWithGoogle = async () => {
+    const { error } = await authService.signInWithGoogle()
+    // State will be updated automatically via onAuthStateChange after redirect
+    return { error }
+  }
+
   const value: AuthContextType = {
     user,
     session,
@@ -73,6 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAuthenticated: !!user,
     signIn,
     signUp,
+    signInWithGoogle,
     signOut,
   }
 

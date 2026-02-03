@@ -133,6 +133,25 @@ export const authService = {
       console.error('Error checking email:', error)
       return { exists: false, error: 'Connection error. Please try again.' }
     }
+  },
+
+  async signInWithGoogle(): Promise<{ error: string }> {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      })
+
+      if (error) {
+        return { error: mapAuthError(error) }
+      }
+
+      return { error: '' }
+    } catch (error) {
+      return { error: 'Failed to sign in with Google. Please try again.' }
+    }
   }
 }
 

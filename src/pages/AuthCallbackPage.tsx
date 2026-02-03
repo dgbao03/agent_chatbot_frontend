@@ -1,29 +1,89 @@
-import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { supabase } from '../lib/supabase'
 
 export function AuthCallbackPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { isAuthenticated, loading } = useAuth()
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Wait for auth state to be determined
-    if (!loading) {
-      if (isAuthenticated) {
-        // Email confirmed and user is authenticated, redirect to chat
-        navigate('/chat', { replace: true })
-      } else {
-        // Something went wrong, redirect to login
+    // Check for OAuth errors in URL
+    const errorParam = searchParams.get('error')
+    const errorDescription = searchParams.get('error_description')
+
+    if (errorParam) {
+      setError(errorDescription || 'Authentication failed')
+      // Redirect to login after showing error
+      setTimeout(() => {
         navigate('/login', { replace: true })
+      }, 3000)
+      return
+    }
+
+    // Handle OAuth callback - Supabase automatically processes the hash
+    const handleAuthCallback = async () => {
+      try {
+        // Get session from URL hash (Supabase stores tokens here)
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        
+        if (sessionError) {
+          setError('Failed to authenticate. Please try again.')
+          setTimeout(() => {
+            navigate('/login', { replace: true })
+          }, 3000)
+          return
+        }
+
+        // Session will be set automatically, onAuthStateChange will trigger
+        // Wait for auth state to update
+        if (!loading) {
+          if (isAuthenticated) {
+            navigate('/chat', { replace: true })
+          } else {
+            setError('Authentication failed. Please try again.')
+            setTimeout(() => {
+              navigate('/login', { replace: true })
+            }, 3000)
+          }
+        }
+      } catch (err) {
+        setError('An error occurred during authentication.')
+        setTimeout(() => {
+          navigate('/login', { replace: true })
+        }, 3000)
       }
     }
-  }, [isAuthenticated, loading, navigate])
+
+    handleAuthCallback()
+  }, [navigate, searchParams, isAuthenticated, loading])
+
+  // Redirect when authenticated
+  useEffect(() => {
+    if (!loading && isAuthenticated && !error) {
+      navigate('/chat', { replace: true })
+    }
+  }, [isAuthenticated, loading, navigate, error])
 
   return (
     <div className="flex items-center justify-center h-screen bg-white">
       <div className="flex flex-col items-center gap-4">
-        <div className="w-8 h-8 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-gray-600">Confirming your email...</p>
+        {error ? (
+          <>
+            <svg className="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-red-600 font-medium">{error}</p>
+            <p className="text-sm text-gray-500">Redirecting to login...</p>
+          </>
+        ) : (
+          <>
+            <div className="w-8 h-8 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-gray-600">Completing sign in...</p>
+          </>
+        )}
       </div>
     </div>
   )
