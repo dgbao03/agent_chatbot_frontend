@@ -106,6 +106,27 @@ export const conversationService = {
       console.error('Error deleting conversation:', error)
       return { error: 'Failed to delete conversation' }
     }
+  },
+
+  // Check if conversation exists
+  async checkConversationExists(id: string): Promise<{ exists: boolean; error: string }> {
+    try {
+      const { data, error } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('id', id)
+        .maybeSingle()
+
+      if (error) {
+        console.error('Error checking conversation:', error)
+        return { exists: false, error: error.message }
+      }
+
+      return { exists: !!data, error: '' }
+    } catch (error) {
+      console.error('Error checking conversation:', error)
+      return { exists: false, error: 'Failed to check conversation' }
+    }
   }
 }
 

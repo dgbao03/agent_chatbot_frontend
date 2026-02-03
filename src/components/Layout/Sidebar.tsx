@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { conversationService } from '../../services/database'
 import type { Conversation } from '../../types/database'
 import { UserMenu } from './UserMenu'
@@ -18,10 +19,15 @@ export function Sidebar({
   onSelectConversation,
   onNewConversation
 }: SidebarProps) {
+  const navigate = useNavigate()
+  const { conversationId: urlConversationId } = useParams<{ conversationId?: string }>()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  
+  // Sync selectedConversationId with URL
+  const currentConversationId = urlConversationId || selectedConversationId || null
 
   // Fetch conversations on mount
   useEffect(() => {
@@ -50,8 +56,10 @@ export function Sidebar({
     }
 
     if (data) {
-      // Add to list and select it
+      // Add to list
       setConversations(prev => [data, ...prev])
+      // Navigate to new conversation URL
+      navigate(`/chat/${data.id}`, { replace: false })
       onNewConversation()
       onSelectConversation(data.id)
     }
@@ -74,9 +82,10 @@ export function Sidebar({
     // Remove from list
     setConversations(prev => prev.filter(c => c.id !== id))
     
-    // If deleted conversation was selected, clear selection
-    if (selectedConversationId === id) {
-      onSelectConversation('')
+    // If deleted conversation was selected, navigate to base chat URL
+    if (currentConversationId === id) {
+      navigate('/chat', { replace: true })
+      onNewConversation()
     }
   }
 
@@ -202,7 +211,7 @@ export function Sidebar({
                     key={conv.id}
                     onClick={() => onSelectConversation(conv.id)}
                     className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors group flex items-center justify-between ${
-                      selectedConversationId === conv.id
+                      currentConversationId === conv.id
                         ? 'bg-gray-200'
                         : 'hover:bg-gray-200'
                     }`}

@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import type { Message, PageContent } from '../types'
 import { chatService, slideService } from '../services/api'
-import { messageService } from '../services/database'
+import { messageService, conversationService } from '../services/database'
 import { useSlideVersions } from '../hooks/useSlideVersions'
 import { Header } from '../components/Layout/Header'
 import { Sidebar } from '../components/Layout/Sidebar'
 import { ChatContainer } from '../components/Chat/ChatContainer'
 import { SlideViewer } from '../components/Slide/SlideViewer'
+import { ErrorBanner } from '../components/Layout/ErrorBanner'
 
 export function ChatPage() {
+  const { conversationId } = useParams<{ conversationId?: string }>()
+  const navigate = useNavigate()
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -21,6 +25,7 @@ export function ChatPage() {
   const [slideScale, setSlideScale] = useState(0.6)
   const [slideViewMode, setSlideViewMode] = useState<'slide' | 'code'>('slide')
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [conversationError, setConversationError] = useState<string | null>(null)
 
   // Use the slide versions hook
   const {
@@ -33,6 +38,30 @@ export function ChatPage() {
     getCurrentVersionIndex,
     resetVersions
   } = useSlideVersions()
+
+  // Sync URL params with state and validate conversation
+  useEffect(() => {
+    if (conversationId) {
+      // Validate conversation exists before setting it
+      validateAndSetConversation(conversationId)
+    } else {
+      setSelectedConversationId(null)
+      setConversationError(null)
+    }
+  }, [conversationId])
+
+  const validateAndSetConversation = async (id: string) => {
+    const { exists, error } = await conversationService.checkConversationExists(id)
+    
+    if (error || !exists) {
+      setConversationError(`Unable to load conversation ${id}`)
+      setSelectedConversationId(null)
+      setMessages([])
+    } else {
+      setConversationError(null)
+      setSelectedConversationId(id)
+    }
+  }
 
   // Load messages when conversation is selected
   useEffect(() => {
@@ -190,7 +219,8 @@ export function ChatPage() {
   }
 
   const handleSelectConversation = (conversationId: string) => {
-    setSelectedConversationId(conversationId)
+    // Navigate to conversation URL
+    navigate(`/chat/${conversationId}`, { replace: false })
     // Close sidebar on mobile after selection
     setIsSidebarOpen(false)
     // Reset slide states when switching conversations
@@ -201,7 +231,8 @@ export function ChatPage() {
   }
 
   const handleNewConversation = () => {
-    setSelectedConversationId(null)
+    // Navigate to base chat URL (no conversation selected)
+    navigate('/chat', { replace: false })
     setMessages([])
     // Reset slide states
     setShowSlide(false)
@@ -212,6 +243,14 @@ export function ChatPage() {
 
   return (
     <div className="flex flex-col h-screen bg-white">
+      {/* Error Banner */}
+      {conversationError && (
+        <ErrorBanner
+          message={conversationError}
+          onClose={() => setConversationError(null)}
+        />
+      )}
+
       <Header 
         showSidebarToggle={true}
         onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}

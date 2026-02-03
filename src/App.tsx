@@ -29,7 +29,7 @@ function AppRoutes() {
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
       <Route
-        path="/chat"
+        path="/chat/:conversationId?"
         element={
           <ProtectedRoute>
             <ChatPage />
@@ -39,7 +39,7 @@ function AppRoutes() {
       <Route path="/" element={<RootRedirect />} />
     </Routes>
   )
-    }
+}
 
 function App() {
   return (
