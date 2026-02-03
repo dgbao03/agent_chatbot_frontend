@@ -3,12 +3,27 @@ import type { Message, VersionInfo, PageContent } from '../types'
 import { supabase } from '../lib/supabase'
 
 export const chatService = {
-  async sendMessage(userInput: string, conversationId: string): Promise<Message> {
+  async sendMessage(
+    userInput: string, 
+    conversationId: string | null
+  ): Promise<Message & { conversation_id?: string; title?: string }> {
     // Get JWT token from Supabase session
     const { data: { session } } = await supabase.auth.getSession()
     
     if (!session?.access_token) {
       throw new Error('Not authenticated. Please login again.')
+    }
+
+    // Build request body - chỉ gửi conversation_id nếu không null
+    const requestBody: any = {
+      start_event: {
+        user_input: userInput
+      }
+    }
+    
+    // Chỉ thêm conversation_id nếu không null
+    if (conversationId) {
+      requestBody.start_event.conversation_id = conversationId
     }
 
     const response = await fetch(API_URL, {
@@ -17,12 +32,7 @@ export const chatService = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${session.access_token}`,
       },
-      body: JSON.stringify({
-        start_event: {
-          user_input: userInput,
-          conversation_id: conversationId
-        }
-      }),
+      body: JSON.stringify(requestBody),
     })
 
     if (!response.ok) {
@@ -39,6 +49,8 @@ export const chatService = {
       let intent: 'GENERAL' | 'PPTX' | undefined
       let pages: PageContent[] | undefined
       let total_pages: number | undefined
+      let conversation_id: string | undefined
+      let title: string | undefined
       
       if (typeof result === 'string') {
         // Response là string (GENERAL case cũ)
@@ -50,11 +62,14 @@ export const chatService = {
         intent = result.intent
         pages = result.pages
         total_pages = result.total_pages
+        // Extract conversation_id và title nếu có (khi tạo conversation mới)
+        conversation_id = result.conversation_id
+        title = result.title
       } else {
         content = JSON.stringify(result)
       }
       
-      return {
+      const message: Message & { conversation_id?: string; title?: string } = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content,
@@ -62,6 +77,16 @@ export const chatService = {
         pages,
         total_pages
       }
+      
+      // Add conversation_id và title nếu có
+      if (conversation_id) {
+        message.conversation_id = conversation_id
+      }
+      if (title) {
+        message.title = title
+      }
+      
+      return message
     } else if (data.error) {
       throw new Error(data.error)
     } else {

@@ -26,6 +26,8 @@ export function ChatPage() {
   const [slideViewMode, setSlideViewMode] = useState<'slide' | 'code'>('slide')
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [conversationError, setConversationError] = useState<string | null>(null)
+  const [pendingMessages, setPendingMessages] = useState<Message[]>([])
+  const [isCreatingConversation, setIsCreatingConversation] = useState(false)
 
   // Use the slide versions hook
   const {
@@ -67,9 +69,14 @@ export function ChatPage() {
   useEffect(() => {
     if (selectedConversationId) {
       loadMessages(selectedConversationId)
+      // Clear pending messages khi conversation được chọn
+      setPendingMessages([])
+      setIsCreatingConversation(false)
     } else {
       // Clear messages if no conversation selected
       setMessages([])
+      setPendingMessages([])
+      setIsCreatingConversation(false)
     }
   }, [selectedConversationId])
 
@@ -141,34 +148,88 @@ export function ChatPage() {
   }, [showSlide, showChatOnMobile, slideViewMode])
 
   const handleSend = async () => {
-    if (!input.trim() || isLoading || !selectedConversationId) return
+    if (!input.trim() || isLoading) return
 
     const userInput = input.trim()
     setInput('')
     setIsLoading(true)
 
     try {
-      // Add user message to UI (optimistic update)
-      const userMessage: Message = {
-        id: Date.now().toString(), // Temporary ID for UI
-        role: 'user',
-        content: userInput
+      // CASE 1: Chưa có conversation (new chat)
+      if (!selectedConversationId) {
+        // Optimistic update: Add to pending messages
+        const tempUserMsg: Message = {
+          id: 'temp-user-' + Date.now(),
+          role: 'user',
+          content: userInput
+        }
+        setPendingMessages([tempUserMsg])
+        setIsCreatingConversation(true)
+
+        // Call backend với conversation_id = null
+        const response = await chatService.sendMessage(userInput, null)
+
+        // Backend trả về conversation_id và title nếu tạo mới
+        if (response.conversation_id) {
+          // Navigate đến conversation mới
+          navigate(`/chat/${response.conversation_id}`, { replace: true })
+          
+          // Clear pending messages
+          setPendingMessages([])
+          setIsCreatingConversation(false)
+          
+          // Trigger sidebar refresh để hiển thị conversation mới
+          window.dispatchEvent(new CustomEvent('conversationCreated', {
+            detail: { conversationId: response.conversation_id, title: response.title }
+          }))
+          
+          // Load messages từ DB (sẽ được trigger bởi useEffect khi selectedConversationId thay đổi)
+        } else {
+          // Fallback: nếu không có conversation_id, rollback
+          setPendingMessages([])
+          setIsCreatingConversation(false)
+          throw new Error('Failed to create conversation')
+        }
       }
-      setMessages(prev => [...prev, userMessage])
+      // CASE 2: Đã có conversation (existing chat)
+      else {
+        // Add user message to UI (optimistic update)
+        const userMessage: Message = {
+          id: Date.now().toString(), // Temporary ID for UI
+          role: 'user',
+          content: userInput
+        }
+        setMessages(prev => [...prev, userMessage])
 
-      // Backend will save both user and assistant messages
-      const assistantMessage = await chatService.sendMessage(userInput, selectedConversationId)
+        // Backend will save both user and assistant messages
+        const assistantMessage = await chatService.sendMessage(userInput, selectedConversationId)
 
-      // Add assistant message to UI (backend already saved it)
-      setMessages(prev => [...prev, assistantMessage])
+        // Add assistant message to UI (backend already saved it)
+        setMessages(prev => [...prev, assistantMessage])
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred'
+      
+      // Rollback optimistic update
+      if (!selectedConversationId) {
+        setPendingMessages([])
+        setIsCreatingConversation(false)
+      } else {
+        // Remove last user message if error
+        setMessages(prev => prev.slice(0, -1))
+      }
+      
       const errorMsg: Message = {
         id: Date.now().toString(),
         role: 'assistant',
         content: `Error: ${errorMessage}`
       }
-      setMessages(prev => [...prev, errorMsg])
+      
+      if (selectedConversationId) {
+        setMessages(prev => [...prev, errorMsg])
+      } else {
+        setPendingMessages(prev => [...prev, errorMsg])
+      }
     } finally {
       setIsLoading(false)
     }
@@ -234,6 +295,8 @@ export function ChatPage() {
     // Navigate to base chat URL (no conversation selected)
     navigate('/chat', { replace: false })
     setMessages([])
+    setPendingMessages([])
+    setIsCreatingConversation(false)
     // Reset slide states
     setShowSlide(false)
     setCurrentSlidePages([])
@@ -276,16 +339,19 @@ export function ChatPage() {
             </div>
           </div>
         ) : !selectedConversationId ? (
-          <div className="flex-1 flex items-center justify-center bg-white">
-            <div className="text-center px-6">
-              <svg className="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">No conversation selected</h2>
-              <p className="text-gray-600">Select a conversation from the sidebar or start a new chat</p>
-            </div>
-          </div>
+          // New chat - hiển thị chat interface với pendingMessages
+          <ChatContainer
+            messages={pendingMessages}
+            input={input}
+            isLoading={isLoading || isCreatingConversation}
+            showSlide={showSlide}
+            showChatOnMobile={showChatOnMobile}
+            onInputChange={setInput}
+            onSend={handleSend}
+            onViewSlide={handleViewSlide}
+          />
         ) : (
+          // Existing chat - hiển thị messages từ DB
           <ChatContainer
             messages={messages}
             input={input}

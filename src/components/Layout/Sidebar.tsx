@@ -34,6 +34,19 @@ export function Sidebar({
     fetchConversations()
   }, [])
 
+  // Listen for conversation created event
+  useEffect(() => {
+    const handleConversationCreated = () => {
+      // Refresh conversations list
+      fetchConversations()
+    }
+
+    window.addEventListener('conversationCreated', handleConversationCreated)
+    return () => {
+      window.removeEventListener('conversationCreated', handleConversationCreated)
+    }
+  }, [])
+
   const fetchConversations = async () => {
     setIsLoading(true)
     const { data, error } = await conversationService.fetchConversations()
@@ -45,24 +58,11 @@ export function Sidebar({
     setIsLoading(false)
   }
 
-  const handleNewChat = async () => {
-    const { data, error } = await conversationService.createConversation({
-      title: 'New Chat'
-    })
-    
-    if (error) {
-      console.error('Failed to create conversation:', error)
-      return
-    }
-
-    if (data) {
-      // Add to list
-      setConversations(prev => [data, ...prev])
-      // Navigate to new conversation URL
-      navigate(`/chat/${data.id}`, { replace: false })
-      onNewConversation()
-      onSelectConversation(data.id)
-    }
+  const handleNewChat = () => {
+    // Chỉ navigate, không tạo conversation
+    // Conversation sẽ được tạo khi user gửi message đầu tiên
+    navigate('/chat', { replace: false })
+    onNewConversation()
   }
 
   const handleDeleteConversation = async (id: string, e: React.MouseEvent) => {

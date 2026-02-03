@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import type { Message } from '../../types'
 import { MessageItem } from './MessageItem'
 
@@ -8,8 +9,18 @@ interface MessageListProps {
 }
 
 export function MessageList({ messages, isLoading, onViewSlide }: MessageListProps) {
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // Auto-scroll to bottom when messages change or loading state changes
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [messages, isLoading])
+
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-8">
+    <div ref={containerRef} className="flex-1 overflow-y-auto px-6 py-8">
       <div className="max-w-3xl mx-auto space-y-6">
         {messages.map(message => (
           <MessageItem 
@@ -44,6 +55,7 @@ export function MessageList({ messages, isLoading, onViewSlide }: MessageListPro
             </div>
           </div>
         )}
+        <div ref={messagesEndRef} />
       </div>
     </div>
   )
