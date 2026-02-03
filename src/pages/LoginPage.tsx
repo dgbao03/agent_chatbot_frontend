@@ -1,15 +1,26 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { signIn, signInWithGoogle, isAuthenticated, loading: authLoading } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+
+  // Check for success message from navigation state
+  useEffect(() => {
+    if (location.state && typeof location.state === 'object' && 'message' in location.state) {
+      setSuccessMessage(location.state.message as string)
+      // Clear state to prevent showing message on refresh
+      window.history.replaceState({}, document.title)
+    }
+  }, [location])
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -75,6 +86,13 @@ export function LoginPage() {
             <p className="text-gray-600">Welcome back!</p>
           </div>
 
+          {/* Success Message */}
+          {successMessage && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-2xl">
+              <p className="text-sm text-green-600">{successMessage}</p>
+            </div>
+          )}
+
           {/* Error Message */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl">
@@ -128,6 +146,14 @@ export function LoginPage() {
                     </svg>
                   )}
                 </button>
+              </div>
+              <div className="mt-2 text-right">
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-gray-600 hover:text-gray-900 hover:underline"
+                >
+                  Forgot password?
+                </Link>
               </div>
             </div>
 

@@ -67,6 +67,31 @@ export const authService = {
 
   async signIn(data: SignInData): Promise<{ user: User | null; error: string }> {
     try {
+      // First, check if email exists
+      const { exists, error: emailCheckError } = await authService.checkEmailExists(data.email)
+      
+      if (emailCheckError) {
+        // If email check fails, proceed with normal sign in (fallback)
+        // This ensures we don't block legitimate sign-ins if RPC fails
+      } else if (exists) {
+        // Email exists, check auth providers
+        const { providers, error: providersError } = await authService.checkUserAuthProviders(data.email)
+        
+        if (!providersError && providers.length > 0) {
+          // Check if account only has OAuth providers (no email/password)
+          const hasPassword = providers.includes('email')
+          const hasGoogle = providers.includes('google')
+          
+          if (!hasPassword && hasGoogle) {
+            return { 
+              user: null, 
+              error: 'This account was created with Google. \nPlease sign in with Google instead.' 
+            }
+          }
+        }
+      }
+
+      // Proceed with normal sign in
       const { data: authData, error } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password
@@ -135,6 +160,24 @@ export const authService = {
     }
   },
 
+  async checkUserAuthProviders(email: string): Promise<{ providers: string[]; error: string }> {
+    try {
+      const { data, error } = await supabase.rpc('check_user_auth_providers', {
+        user_email: email
+      })
+
+      if (error) {
+        console.error('Error checking auth providers:', error)
+        return { providers: [], error: 'Failed to check authentication methods' }
+      }
+
+      return { providers: (data as string[]) || [], error: '' }
+    } catch (error) {
+      console.error('Error checking auth providers:', error)
+      return { providers: [], error: 'Connection error. Please try again.' }
+    }
+  },
+
   async signInWithGoogle(): Promise<{ error: string }> {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -154,6 +197,38 @@ export const authService = {
       return { error: '' }
     } catch (error) {
       return { error: 'Failed to sign in with Google. Please try again.' }
+    }
+  },
+
+  async resetPasswordForEmail(email: string): Promise<{ error: string }> {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`
+      })
+
+      if (error) {
+        return { error: mapAuthError(error) }
+      }
+
+      return { error: '' }
+    } catch (error) {
+      return { error: 'Failed to send password reset email. Please try again.' }
+    }
+  },
+
+  async updatePassword(newPassword: string): Promise<{ error: string }> {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      })
+
+      if (error) {
+        return { error: mapAuthError(error) }
+      }
+
+      return { error: '' }
+    } catch (error) {
+      return { error: 'Failed to update password. Please try again.' }
     }
   }
 }

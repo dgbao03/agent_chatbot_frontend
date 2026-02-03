@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { ProtectedRoute } from './components/Layout/ProtectedRoute'
-import { ChatPage, LoginPage, SignupPage, AuthCallbackPage } from './pages'
+import { ChatPage, LoginPage, SignupPage, AuthCallbackPage, ForgotPasswordPage, ResetPasswordPage } from './pages'
 import { useAuth } from './hooks/useAuth'
 
 // Component to handle root redirect based on auth state
@@ -27,6 +27,8 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
       <Route
         path="/chat/:conversationId?"
