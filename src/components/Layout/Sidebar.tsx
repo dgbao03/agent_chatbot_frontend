@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate, useParams } from 'react-router-dom'
 import { conversationService } from '../../services/database'
 import type { Conversation } from '../../types/database'
@@ -25,6 +26,13 @@ export function Sidebar({
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editTitle, setEditTitle] = useState('')
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteConversationId, setDeleteConversationId] = useState<string | null>(null)
+  const [deleteConversationTitle, setDeleteConversationTitle] = useState<string>('')
+  const menuRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
   
   // Sync selectedConversationId with URL
   const currentConversationId = urlConversationId || selectedConversationId || null
@@ -65,28 +73,106 @@ export function Sidebar({
     onNewConversation()
   }
 
-  const handleDeleteConversation = async (id: string, e: React.MouseEvent) => {
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openMenuId && menuRefs.current[openMenuId]) {
+        const menuElement = menuRefs.current[openMenuId]
+        if (menuElement && !menuElement.contains(event.target as Node)) {
+          setOpenMenuId(null)
+        }
+      }
+    }
+
+    if (openMenuId) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [openMenuId])
+
+  const handleMenuToggle = (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    
-    if (!confirm('Are you sure you want to delete this conversation?')) {
+    setOpenMenuId(openMenuId === id ? null : id)
+  }
+
+  const handleRenameClick = (conv: Conversation, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setOpenMenuId(null)
+    setEditingId(conv.id)
+    setEditTitle(conv.title || 'New Chat')
+  }
+
+  const handleRenameSave = async (id: string) => {
+    if (!editTitle.trim()) {
+      setEditingId(null)
       return
     }
 
-    const { error } = await conversationService.deleteConversation(id)
+    const { error } = await conversationService.updateConversation(id, {
+      title: editTitle.trim()
+    })
+
+    if (error) {
+      console.error('Failed to rename conversation:', error)
+      alert('Failed to rename conversation')
+    } else {
+      setConversations(prev =>
+        prev.map(c => c.id === id ? { ...c, title: editTitle.trim() } : c)
+      )
+    }
+
+    setEditingId(null)
+    setEditTitle('')
+  }
+
+  const handleRenameCancel = () => {
+    setEditingId(null)
+    setEditTitle('')
+  }
+
+  const handleDeleteClick = (conv: Conversation, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setOpenMenuId(null)
+    setDeleteConversationId(conv.id)
+    setDeleteConversationTitle(conv.title || 'New Chat')
+    setShowDeleteModal(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConversationId) return
+
+    const { error } = await conversationService.deleteConversation(deleteConversationId)
     
     if (error) {
       console.error('Failed to delete conversation:', error)
+      alert('Failed to delete conversation')
+      setShowDeleteModal(false)
+      setDeleteConversationId(null)
+      setDeleteConversationTitle('')
       return
     }
 
     // Remove from list
-    setConversations(prev => prev.filter(c => c.id !== id))
+    setConversations(prev => prev.filter(c => c.id !== deleteConversationId))
     
     // If deleted conversation was selected, navigate to base chat URL
-    if (currentConversationId === id) {
+    if (currentConversationId === deleteConversationId) {
       navigate('/chat', { replace: true })
       onNewConversation()
     }
+
+    setShowDeleteModal(false)
+    setDeleteConversationId(null)
+    setDeleteConversationTitle('')
+  }
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false)
+    setDeleteConversationId(null)
+    setDeleteConversationTitle('')
   }
 
   return (
@@ -207,30 +293,90 @@ export function Sidebar({
                 </div>
               ) : (
                 conversations.map(conv => (
-                  <button
+                  <div
                     key={conv.id}
-                    onClick={() => onSelectConversation(conv.id)}
-                    className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors group flex items-center justify-between ${
-                      currentConversationId === conv.id
-                        ? 'bg-gray-200'
-                        : 'hover:bg-gray-200'
-                    }`}
+                    className="relative"
                   >
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <svg className="w-4 h-4 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                      </svg>
-                      <span className="text-sm text-gray-900 truncate">{conv.title || 'New Chat'}</span>
-                    </div>
-                    <button
-                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-300 rounded transition-opacity flex-shrink-0"
-                      onClick={(e) => handleDeleteConversation(conv.id, e)}
-                    >
-                      <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </button>
+                    {editingId === conv.id ? (
+                      <div className="px-3 py-2.5">
+                        <input
+                          type="text"
+                          value={editTitle}
+                          onChange={(e) => setEditTitle(e.target.value)}
+                          onBlur={() => handleRenameSave(conv.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleRenameSave(conv.id)
+                            } else if (e.key === 'Escape') {
+                              handleRenameCancel()
+                            }
+                          }}
+                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gray-400"
+                          autoFocus
+                        />
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          if (editingId !== conv.id) {
+                            onSelectConversation(conv.id)
+                          }
+                        }}
+                        className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors group flex items-center justify-between ${
+                          currentConversationId === conv.id
+                            ? 'bg-gray-200'
+                            : 'hover:bg-gray-200'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <svg className="w-4 h-4 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                          </svg>
+                          <span className="text-sm text-gray-900 truncate">{conv.title || 'New Chat'}</span>
+                        </div>
+                        <div className="relative flex-shrink-0">
+                          <button
+                            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-300 rounded transition-opacity"
+                            onClick={(e) => handleMenuToggle(conv.id, e)}
+                          >
+                            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                            </svg>
+                          </button>
+                          
+                          {openMenuId === conv.id && (
+                            <div
+                              ref={(el) => {
+                                if (el) {
+                                  menuRefs.current[conv.id] = el
+                                }
+                              }}
+                              className="absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[140px]"
+                            >
+                              <button
+                                onClick={(e) => handleRenameClick(conv, e)}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 rounded-t-lg transition-colors flex items-center gap-2"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Rename
+                              </button>
+                              <button
+                                onClick={(e) => handleDeleteClick(conv, e)}
+                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 rounded-b-lg transition-colors flex items-center gap-2"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    )}
+                  </div>
                 ))
               )}
             </div>
@@ -242,6 +388,58 @@ export function Sidebar({
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal - Using Portal to render outside sidebar */}
+      {showDeleteModal && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={handleDeleteCancel}
+          />
+          
+          {/* Modal */}
+          <div className="relative bg-white rounded-lg shadow-xl w-[90%] max-w-[450px] p-6">
+            {/* Close Button */}
+            <button
+              onClick={handleDeleteCancel}
+              className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label="Close"
+            >
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Title */}
+            <h2 className="text-xl font-semibold text-gray-900 mb-4 pr-8">
+              Delete conversation
+            </h2>
+
+            {/* Message */}
+            <p className="text-base text-gray-600 mb-6">
+              Are you sure you want to delete <span className="font-medium text-gray-900">"{deleteConversationTitle}"</span>? This action cannot be undone.
+            </p>
+
+            {/* Buttons */}
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={handleDeleteCancel}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
       
       {/* CSS animation keyframes */}
       <style>{`
