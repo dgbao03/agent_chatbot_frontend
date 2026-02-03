@@ -1,59 +1,29 @@
-import type { VersionInfo } from '../../types'
-
 interface SlideHeaderProps {
-  versions: VersionInfo[]
-  currentVersion: number | null
-  currentVersionIndex: number
-  isLoadingVersions: boolean
   viewMode: 'slide' | 'code'
-  onPrevVersion: () => void
-  onNextVersion: () => void
   onViewModeChange: (mode: 'slide' | 'code') => void
+  onDownload: () => void
   onClose: () => void
 }
 
 export function SlideHeader({
-  versions,
-  currentVersion,
-  currentVersionIndex,
-  isLoadingVersions,
   viewMode,
-  onPrevVersion,
-  onNextVersion,
   onViewModeChange,
+  onDownload,
   onClose
 }: SlideHeaderProps) {
   return (
     <div className="flex items-center justify-end px-2 sm:px-4 md:px-6 py-3 md:py-4 border-b border-gray-200 flex-shrink-0">
       <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
-        {/* Version Navigation */}
-        {versions.length > 0 && currentVersion && (
-          <div className="flex items-center gap-1 bg-gray-100 rounded-lg px-2 py-1.5">
-            <button
-              onClick={onPrevVersion}
-              disabled={currentVersionIndex === 1 || isLoadingVersions}
-              className="text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex-shrink-0"
-              aria-label="Previous version"
-            >
-              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <span className="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">
-              V{currentVersionIndex}/{versions.length}
-            </span>
-            <button
-              onClick={onNextVersion}
-              disabled={currentVersionIndex === versions.length || isLoadingVersions}
-              className="text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex-shrink-0"
-              aria-label="Next version"
-            >
-              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
-        )}
+        {/* Download Button */}
+        <button
+          onClick={onDownload}
+          className="text-gray-600 hover:text-gray-900 transition-colors flex-shrink-0"
+          aria-label="Download slide"
+        >
+          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+        </button>
         {/* View Mode Toggle */}
         <div className="flex items-center bg-gray-200 rounded-lg p-0.5 sm:p-1 shadow-sm flex-shrink-0">
           <button

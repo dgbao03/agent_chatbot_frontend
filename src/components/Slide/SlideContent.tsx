@@ -61,7 +61,7 @@ export function SlideContent({ pages, viewMode, slideScale, onScaleChange }: Sli
     <div 
       ref={slideContainerRef}
       className={`flex-1 bg-gray-100 ${
-        viewMode === 'slide' ? 'overflow-y-auto overflow-x-hidden p-8' : 'overflow-auto'
+        viewMode === 'slide' ? 'overflow-y-auto overflow-x-hidden p-8 pb-24' : 'overflow-auto pb-24'
       }`}
     >
       {viewMode === 'slide' ? (
