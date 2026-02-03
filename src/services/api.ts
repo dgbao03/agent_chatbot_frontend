@@ -173,7 +173,11 @@ export const slideService = {
     if (currentVersionInfo) {
       try {
         const versionData = await this.fetchVersionContent(presentationId, currentVersionInfo.version)
-        const normalizedVersion = versionData.html_content.replace(/\s+/g, ' ').trim()
+        // html_content có thể là array hoặc string, cần xử lý cả hai
+        const versionHtml = Array.isArray(versionData.html_content) 
+          ? versionData.html_content.map((p: PageContent) => p.html_content).join('')
+          : versionData.html_content
+        const normalizedVersion = versionHtml.replace(/\s+/g, ' ').trim()
         
         if (normalizedTarget === normalizedVersion) {
           return currentVersionInfo.version
@@ -189,7 +193,11 @@ export const slideService = {
       
       try {
         const versionData = await this.fetchVersionContent(presentationId, versionInfo.version)
-        const normalizedVersion = versionData.html_content.replace(/\s+/g, ' ').trim()
+        // html_content có thể là array hoặc string, cần xử lý cả hai
+        const versionHtml = Array.isArray(versionData.html_content) 
+          ? versionData.html_content.map((p: PageContent) => p.html_content).join('')
+          : versionData.html_content
+        const normalizedVersion = versionHtml.replace(/\s+/g, ' ').trim()
         
         if (normalizedTarget === normalizedVersion) {
           return versionInfo.version

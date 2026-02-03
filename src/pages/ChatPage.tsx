@@ -153,16 +153,19 @@ export function ChatPage() {
     setShowSlide(true)
     setShowChatOnMobile(false)
     
+    // Tạo HTML string từ message.pages để match version
+    const messageHtml = pagesToShow.map(p => p.html_content).join('')
+    
     // Fetch presentation_id và versions
     if (message.slide_id) {
       setCurrentSlideId(message.slide_id)
-      await fetchSlideVersions(message.slide_id, null)
+      await fetchSlideVersions(message.slide_id, messageHtml)
     } else if (selectedConversationId) {
       // Fetch active presentation_id nếu không có trong message
       const presentationId = await slideService.fetchActivePresentationId(selectedConversationId)
       if (presentationId) {
         setCurrentSlideId(presentationId)
-        await fetchSlideVersions(presentationId, null)
+        await fetchSlideVersions(presentationId, messageHtml)
       }
     }
   }
