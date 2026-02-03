@@ -4,6 +4,7 @@ import { SlideHeader } from './SlideHeader'
 import { SlideContent } from './SlideContent'
 import { DownloadModal } from './DownloadModal'
 import { VersionNavigationBar } from './VersionNavigationBar'
+import { FullscreenPresentation } from './FullscreenPresentation'
 
 interface SlideViewerProps {
   pages: PageContent[]
@@ -37,6 +38,8 @@ export function SlideViewer({
   onClose
 }: SlideViewerProps) {
   const [showDownloadModal, setShowDownloadModal] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0)
 
   if (pages.length === 0) return null
 
@@ -48,21 +51,35 @@ export function SlideViewer({
     setShowDownloadModal(false)
   }
 
+  const handleFullscreenClick = () => {
+    setIsFullscreen(true)
+    setCurrentSlideIndex(0) // Start from first slide
+  }
+
+  const handleExitFullscreen = () => {
+    setIsFullscreen(false)
+  }
+
+  const handleSlideChange = (index: number) => {
+    setCurrentSlideIndex(index)
+  }
+
   return (
     <>
       <div className={`flex flex-col ${showChatOnMobile ? 'hidden md:flex' : 'flex'} w-full md:flex-1 md:min-w-0 bg-gray-50 border-l border-gray-200 transition-all duration-300 relative`}>
-        <SlideHeader
-          viewMode={viewMode}
-          onViewModeChange={onViewModeChange}
+      <SlideHeader
+        viewMode={viewMode}
+        onViewModeChange={onViewModeChange}
           onDownload={handleDownloadClick}
-          onClose={onClose}
-        />
-        <SlideContent
-          pages={pages}
-          viewMode={viewMode}
-          slideScale={slideScale}
-          onScaleChange={onScaleChange}
-        />
+          onFullscreen={handleFullscreenClick}
+        onClose={onClose}
+      />
+      <SlideContent
+        pages={pages}
+        viewMode={viewMode}
+        slideScale={slideScale}
+        onScaleChange={onScaleChange}
+      />
         
         {/* Version Navigation Bar - Fixed at bottom */}
         <VersionNavigationBar
@@ -73,13 +90,25 @@ export function SlideViewer({
           onPrevVersion={onPrevVersion}
           onNextVersion={onNextVersion}
         />
-      </div>
+    </div>
       
       {/* Download Modal */}
       <DownloadModal
         isOpen={showDownloadModal}
         onClose={handleCloseDownloadModal}
       />
+
+      {/* Fullscreen Presentation */}
+      {isFullscreen && (
+        <FullscreenPresentation
+          pages={pages}
+          currentSlideIndex={currentSlideIndex}
+          onSlideChange={handleSlideChange}
+          onExit={handleExitFullscreen}
+          versions={versions}
+          currentVersion={currentVersion}
+        />
+      )}
     </>
   )
 }

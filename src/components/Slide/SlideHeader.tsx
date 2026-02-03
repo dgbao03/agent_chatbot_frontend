@@ -2,6 +2,7 @@ interface SlideHeaderProps {
   viewMode: 'slide' | 'code'
   onViewModeChange: (mode: 'slide' | 'code') => void
   onDownload: () => void
+  onFullscreen: () => void
   onClose: () => void
 }
 
@@ -9,19 +10,30 @@ export function SlideHeader({
   viewMode,
   onViewModeChange,
   onDownload,
+  onFullscreen,
   onClose
 }: SlideHeaderProps) {
   return (
     <div className="flex items-center justify-end px-2 sm:px-4 md:px-6 py-3 md:py-4 border-b border-gray-200 flex-shrink-0">
       <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
         {/* Download Button */}
-        <button
+            <button
           onClick={onDownload}
           className="text-gray-600 hover:text-gray-900 transition-colors flex-shrink-0"
           aria-label="Download slide"
-        >
+            >
           <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+            </button>
+        {/* Play/Presentation Button */}
+        <button
+          onClick={onFullscreen}
+          className="text-gray-600 hover:text-gray-900 transition-colors flex-shrink-0"
+          aria-label="Start presentation"
+        >
+          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z" />
           </svg>
         </button>
         {/* View Mode Toggle */}

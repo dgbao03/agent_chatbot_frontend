@@ -30,7 +30,7 @@ export function ChatInput({ input, isLoading, onInputChange, onSend }: ChatInput
   }
 
   return (
-    <div className="border-t border-gray-200 px-6 py-4 bg-white flex-shrink-0">
+    <div className="px-6 py-4 bg-white flex-shrink-0">
       <div className="max-w-3xl mx-auto">
         <div className="flex gap-3 items-center">
           <textarea
