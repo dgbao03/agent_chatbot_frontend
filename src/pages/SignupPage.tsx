@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { authService } from '../services/auth'
+import { checkPasswordStrength } from '../lib/passwordStrength'
 
 export function SignupPage() {
   const navigate = useNavigate()
@@ -17,6 +18,7 @@ export function SignupPage() {
   const [signupSuccess, setSignupSuccess] = useState(false)
   const [signupEmail, setSignupEmail] = useState('')
   const [emailError, setEmailError] = useState('')
+  const [passwordStrength, setPasswordStrength] = useState(checkPasswordStrength(''))
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -32,6 +34,11 @@ export function SignupPage() {
       setEmailError('')
     }
   }, [email])
+
+  // Check password strength when password changes
+  useEffect(() => {
+    setPasswordStrength(checkPasswordStrength(password))
+  }, [password])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -49,8 +56,10 @@ export function SignupPage() {
       return
     }
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters')
+    // Check password strength
+    const strength = checkPasswordStrength(password)
+    if (!strength.isValid) {
+      setError('Password does not meet all requirements')
       return
     }
 
@@ -227,6 +236,30 @@ export function SignupPage() {
                   )}
                 </button>
               </div>
+              {/* Password Strength Checklist */}
+              {password && !passwordStrength.isValid && (
+                <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                  <p className="text-xs font-medium text-gray-700 mb-2">Password requirements:</p>
+                  <ul className="space-y-1.5">
+                    {passwordStrength.criteria.map((criterion, index) => (
+                      <li key={index} className="flex items-center gap-2 text-xs">
+                        {criterion.met ? (
+                          <svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        )}
+                        <span className={criterion.met ? 'text-gray-700' : 'text-gray-500'}>
+                          {criterion.label}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
 
             <div>
