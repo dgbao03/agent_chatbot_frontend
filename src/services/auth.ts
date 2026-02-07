@@ -67,31 +67,6 @@ export const authService = {
 
   async signIn(data: SignInData): Promise<{ user: User | null; error: string }> {
     try {
-      // First, check if email exists
-      const { exists, error: emailCheckError } = await authService.checkEmailExists(data.email)
-      
-      if (emailCheckError) {
-        // If email check fails, proceed with normal sign in (fallback)
-        // This ensures we don't block legitimate sign-ins if RPC fails
-      } else if (exists) {
-        // Email exists, check auth providers
-        const { providers, error: providersError } = await authService.checkUserAuthProviders(data.email)
-        
-        if (!providersError && providers.length > 0) {
-          // Check if account only has OAuth providers (no email/password)
-          const hasPassword = providers.includes('email')
-          const hasGoogle = providers.includes('google')
-          
-          if (!hasPassword && hasGoogle) {
-            return { 
-              user: null, 
-              error: 'This account was created with Google. \nPlease sign in with Google instead.' 
-            }
-          }
-        }
-      }
-
-      // Proceed with normal sign in
       const { data: authData, error } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password

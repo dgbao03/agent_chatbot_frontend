@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
+import { authStorage } from '../lib/authStorage'
 
 export function AuthCallbackPage() {
   const navigate = useNavigate()
@@ -41,6 +42,8 @@ export function AuthCallbackPage() {
         // Wait for auth state to update
         if (!loading) {
           if (isAuthenticated) {
+            // Save google as last auth method on successful OAuth
+            authStorage.saveLastAuthMethod('google')
             navigate('/chat', { replace: true })
           } else {
             setError('Authentication failed. Please try again.')
@@ -63,6 +66,8 @@ export function AuthCallbackPage() {
   // Redirect when authenticated
   useEffect(() => {
     if (!loading && isAuthenticated && !error) {
+      // Save google as last auth method on successful OAuth
+      authStorage.saveLastAuthMethod('google')
       navigate('/chat', { replace: true })
     }
   }, [isAuthenticated, loading, navigate, error])
