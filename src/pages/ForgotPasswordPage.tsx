@@ -63,12 +63,12 @@ export function ForgotPasswordPage() {
                   </svg>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Check your email</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Please check your email</h3>
                   <p className="text-sm text-gray-700 mb-4">
                     If an account exists with <strong className="text-gray-900">{email}</strong>, you'll receive a password reset link.
                   </p>
                   <p className="text-sm text-gray-600 mb-4">
-                    Click the link in the email to reset your password. The link will expire in 1 hour.
+                    Click the link in the email to reset your password. <br />The link will expire in 15 minutes.
                   </p>
                   <Link
                     to="/login"

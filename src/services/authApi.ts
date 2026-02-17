@@ -8,6 +8,7 @@ function mapError(status: number, detail: string | { detail?: string }): string 
   switch (status) {
     case 400:
       if (msg.toLowerCase().includes('email') && msg.toLowerCase().includes('registered')) return 'Email đã được đăng ký'
+      if (msg.toLowerCase().includes('invalid') && msg.toLowerCase().includes('reset')) return 'Invalid or expired reset link. Please request a new one.'
       return msg
     case 401:
       if (msg.toLowerCase().includes('invalid') && msg.toLowerCase().includes('password')) return 'Email hoặc mật khẩu không đúng'
@@ -125,5 +126,32 @@ export const authApi = {
     const { data, error } = await handleResponse<{ authorization_url: string; state: string }>(res)
     if (error) return { url: null, error }
     return { url: data?.authorization_url ?? null, error: '' }
+  },
+
+  async forgotPassword(email: string) {
+    const res = await fetch(`${AUTH_PREFIX}/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    })
+    const { error } = await handleResponse<{ message?: string }>(res)
+    return { error }
+  },
+
+  async verifyResetToken(token: string) {
+    const res = await fetch(`${AUTH_PREFIX}/verify-reset-token?token=${encodeURIComponent(token)}`)
+    const { error } = await handleResponse<{ valid?: boolean }>(res)
+    return { valid: !error, error }
+  },
+
+  async resetPassword(token: string, newPassword: string) {
+    const res = await fetch(`${AUTH_PREFIX}/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, new_password: newPassword }),
+    })
+    const { data, error } = await handleResponse<{ message?: string }>(res)
+    if (error) return { error }
+    return { message: data?.message ?? '', error: '' }
   },
 }

@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
-// ========== SUPABASE COMMENTED - Migrating to FastAPI ==========
-// import { supabase } from '../lib/supabase'
 import { authService } from '../services/auth'
+import { checkPasswordStrength } from '../lib/passwordStrength'
 
 export function ResetPasswordPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const token = searchParams.get('token')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
@@ -14,52 +14,40 @@ export function ResetPasswordPage() {
   const [isValidToken, setIsValidToken] = useState<boolean | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [passwordStrength, setPasswordStrength] = useState(checkPasswordStrength(''))
 
-  // Check if recovery token is valid
   useEffect(() => {
-    const checkRecoveryToken = async () => {
+    const checkToken = async () => {
+      if (!token) {
+        setIsValidToken(false)
+        return
+      }
       try {
-        // ========== SUPABASE COMMENTED ==========
-        // Check if we have a recovery session
-        // const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-        const session = await authService.getSession()
-        const sessionError = null
-        
-        // Check URL for recovery type
-        const type = searchParams.get('type')
-        const hash = window.location.hash
-
-        if (sessionError || (!session && !hash?.includes('type=recovery'))) {
-          setIsValidToken(false)
-          return
-        }
-
-        // If we have a session or recovery token in URL, token is valid
-        if (session || (type === 'recovery' && hash)) {
-          setIsValidToken(true)
-        } else {
-          setIsValidToken(false)
-        }
-      } catch (err) {
+        const { valid } = await authService.verifyResetToken(token)
+        setIsValidToken(valid)
+      } catch {
         setIsValidToken(false)
       }
     }
+    checkToken()
+  }, [token])
 
-    checkRecoveryToken()
-  }, [searchParams])
+  useEffect(() => {
+    setPasswordStrength(checkPasswordStrength(password))
+  }, [password])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
-    // Validation
     if (!password || !confirmPassword) {
       setError('Please fill in all fields')
       return
     }
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters')
+    const strength = checkPasswordStrength(password)
+    if (!strength.isValid) {
+      setError('Password does not meet all requirements')
       return
     }
 
@@ -68,21 +56,24 @@ export function ResetPasswordPage() {
       return
     }
 
+    if (!token) {
+      setError('Invalid reset link')
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
-      const { error } = await authService.updatePassword(password)
-      
+      const { error } = await authService.updatePassword(token, password)
       if (error) {
         setError(error)
       } else {
-        // Success - redirect to login
-        navigate('/login', { 
+        navigate('/login', {
           replace: true,
-          state: { message: 'Password reset successful. Please login with your new password.' }
+          state: { message: 'Password reset successful!' },
         })
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred. Please try again.')
     } finally {
       setIsSubmitting(false)
@@ -90,7 +81,6 @@ export function ResetPasswordPage() {
   }
 
   if (isValidToken === null) {
-    // Loading state
     return (
       <div className="flex items-center justify-center h-screen bg-white">
         <div className="flex flex-col items-center gap-4">
@@ -102,7 +92,6 @@ export function ResetPasswordPage() {
   }
 
   if (isValidToken === false) {
-    // Invalid or expired token
     return (
       <div className="flex flex-col h-screen bg-white">
         <header className="border-b border-gray-200 px-6 py-4 flex-shrink-0">
@@ -136,30 +125,23 @@ export function ResetPasswordPage() {
 
   return (
     <div className="flex flex-col h-screen bg-white">
-      {/* Header */}
       <header className="border-b border-gray-200 px-6 py-4 flex-shrink-0">
-        <h1 className="text-lg font-semibold text-gray-900">
-          Chat Assistant
-        </h1>
+        <h1 className="text-lg font-semibold text-gray-900">Chat Assistant</h1>
       </header>
 
-      {/* Main Content */}
       <div className="flex-1 flex items-center justify-center px-6 py-8">
         <div className="max-w-md w-full">
-          {/* Title */}
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">Reset Password</h2>
             <p className="text-gray-600">Enter your new password</p>
           </div>
 
-          {/* Error Message */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl">
               <p className="text-sm text-red-600">{error}</p>
             </div>
           )}
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
@@ -168,7 +150,7 @@ export function ResetPasswordPage() {
               <div className="relative">
                 <input
                   id="password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
@@ -179,7 +161,7 @@ export function ResetPasswordPage() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? (
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -193,6 +175,30 @@ export function ResetPasswordPage() {
                   )}
                 </button>
               </div>
+              {/* Password Strength Checklist */}
+              {password && !passwordStrength.isValid && (
+                <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                  <p className="text-xs font-medium text-gray-700 mb-2">Password requirements:</p>
+                  <ul className="space-y-1.5">
+                    {passwordStrength.criteria.map((criterion, index) => (
+                      <li key={index} className="flex items-center gap-2 text-xs">
+                        {criterion.met ? (
+                          <svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        )}
+                        <span className={criterion.met ? 'text-gray-700' : 'text-gray-500'}>
+                          {criterion.label}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
 
             <div>
@@ -202,7 +208,7 @@ export function ResetPasswordPage() {
               <div className="relative">
                 <input
                   id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
+                  type={showConfirmPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
@@ -213,7 +219,7 @@ export function ResetPasswordPage() {
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
-                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                 >
                   {showConfirmPassword ? (
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -231,7 +237,7 @@ export function ResetPasswordPage() {
 
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !passwordStrength.isValid}
               className="w-full bg-gray-900 text-white py-3 rounded-2xl font-medium hover:bg-gray-800 transition-colors mt-6 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
               {isSubmitting ? (
@@ -245,7 +251,6 @@ export function ResetPasswordPage() {
             </button>
           </form>
 
-          {/* Footer */}
           <div className="mt-6 text-center">
             <Link to="/login" className="text-gray-600 hover:text-gray-900 text-sm">
               Back to Login
@@ -256,4 +261,3 @@ export function ResetPasswordPage() {
     </div>
   )
 }
-

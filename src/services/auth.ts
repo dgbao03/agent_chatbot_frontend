@@ -151,11 +151,30 @@ export const authService = {
     }
   },
 
-  async resetPasswordForEmail(_email: string): Promise<{ error: string }> {
-    return { error: 'Tính năng đang phát triển' }
+  async resetPasswordForEmail(email: string): Promise<{ error: string }> {
+    try {
+      const { error } = await authApi.forgotPassword(email)
+      return { error }
+    } catch {
+      return { error: 'Connection error. Please try again.' }
+    }
   },
 
-  async updatePassword(_newPassword: string): Promise<{ error: string }> {
-    return { error: 'Tính năng đang phát triển' }
+  async verifyResetToken(token: string): Promise<{ valid: boolean; error: string }> {
+    try {
+      const { valid, error } = await authApi.verifyResetToken(token)
+      return { valid: valid ?? false, error }
+    } catch {
+      return { valid: false, error: 'Connection error. Please try again.' }
+    }
+  },
+
+  async updatePassword(token: string, newPassword: string): Promise<{ error: string }> {
+    try {
+      const { error } = await authApi.resetPassword(token, newPassword)
+      return { error }
+    } catch {
+      return { error: 'Connection error. Please try again.' }
+    }
   },
 }
