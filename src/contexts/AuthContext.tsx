@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
-import { supabase } from '../lib/supabase'
+// ========== SUPABASE COMMENTED - Migrating to FastAPI ==========
+// import { supabase } from '../lib/supabase'
 import { authService } from '../services/auth'
 import type { User, Session } from '@supabase/supabase-js'
 
@@ -31,23 +32,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false)
     })
 
-    // Listen to auth state changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
+    // ========== SUPABASE COMMENTED - Migrating to FastAPI ==========
+    // Listen to auth state changes (Supabase onAuthStateChange)
+    // const {
+    //   data: { subscription },
+    // } = supabase.auth.onAuthStateChange(async (event, session) => {
+    //   setSession(session)
+    //   setUser(session?.user ?? null)
+    //   setLoading(false)
+    //   if (event === 'SIGNED_OUT') { }
+    // })
+    // return () => { subscription.unsubscribe() }
 
-      // Handle specific events if needed
-      if (event === 'SIGNED_OUT') {
-        // Clear any additional state if needed
-      }
-    })
-
-    return () => {
-      subscription.unsubscribe()
-    }
+    // Stub: không có subscription khi dùng stub
+    return () => {}
   }, [])
 
   const signIn = async (email: string, password: string) => {

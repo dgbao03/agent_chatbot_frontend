@@ -15,8 +15,9 @@ export function SignupPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [signupSuccess, setSignupSuccess] = useState(false)
-  const [signupEmail, setSignupEmail] = useState('')
+  // ========== EMAIL VERIFY UI COMMENTED - Redirect to login on success instead ==========
+  // const [signupSuccess, setSignupSuccess] = useState(false)
+  // const [signupEmail, setSignupEmail] = useState('')
   const [emailError, setEmailError] = useState('')
   const [passwordStrength, setPasswordStrength] = useState(checkPasswordStrength(''))
 
@@ -93,10 +94,9 @@ export function SignupPage() {
         setError(error)
         setIsSubmitting(false)
       } else {
-        // Success - show confirmation message instead of redirecting
-        setSignupSuccess(true)
-        setSignupEmail(email)
+        // Success - redirect to login with success message (email verify UI commented out)
         setIsSubmitting(false)
+        navigate('/login', { replace: true, state: { message: 'Đăng ký thành công. Bạn có thể đăng nhập ngay.' } })
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.')
@@ -134,8 +134,8 @@ export function SignupPage() {
             <p className="text-gray-600">Create your new account</p>
           </div>
 
-          {/* Success Message */}
-          {signupSuccess ? (
+          {/* ========== EMAIL VERIFY UI COMMENTED - Check your email flow ========== */}
+          {/* {signupSuccess ? (
             <div className="mb-6 p-6 bg-gray-50 border border-gray-200 rounded-2xl">
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
@@ -160,7 +160,7 @@ export function SignupPage() {
                 </div>
               </div>
             </div>
-          ) : (
+          ) : ( */}
             <>
               {/* Error Message */}
               {error && (
@@ -363,7 +363,7 @@ export function SignupPage() {
             </p>
           </div>
             </>
-          )}
+          {/* )} */}
         </div>
       </div>
     </div>

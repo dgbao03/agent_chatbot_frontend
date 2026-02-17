@@ -15,7 +15,8 @@ export function UserMenu({ isCollapsed = false }: UserMenuProps) {
   const navigate = useNavigate()
   const { user: authUser, signOut } = useAuth()
 
-  // Get user data from Supabase Auth
+  // ========== SUPABASE COMMENTED ==========
+  // Get user data from Supabase Auth (now from useAuth/context)
   const getUserData = () => {
     if (!authUser) {
       return {

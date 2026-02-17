@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+// ========== SUPABASE COMMENTED - Migrating to FastAPI ==========
+// import { supabase } from '../lib/supabase'
 import { authService } from '../services/auth'
 
 export function ResetPasswordPage() {
@@ -18,14 +19,17 @@ export function ResetPasswordPage() {
   useEffect(() => {
     const checkRecoveryToken = async () => {
       try {
+        // ========== SUPABASE COMMENTED ==========
         // Check if we have a recovery session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        // const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        const session = await authService.getSession()
+        const sessionError = null
         
         // Check URL for recovery type
         const type = searchParams.get('type')
         const hash = window.location.hash
 
-        if (sessionError || (!session && !hash.includes('type=recovery'))) {
+        if (sessionError || (!session && !hash?.includes('type=recovery'))) {
           setIsValidToken(false)
           return
         }

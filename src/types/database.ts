@@ -1,4 +1,5 @@
-// Database types matching Supabase schema
+// ========== SUPABASE COMMENTED ==========
+// Database types matching Supabase schema (Supabase disabled - use FastAPI)
 
 export interface Conversation {
   id: string

@@ -17,14 +17,14 @@ export function FullscreenPresentation({
   currentSlideIndex,
   onSlideChange,
   onExit,
-  versions,
-  currentVersion,
-  onVersionChange
+  versions: _versions,
+  currentVersion: _currentVersion,
+  onVersionChange: _onVersionChange
 }: FullscreenPresentationProps) {
   const [showControls, setShowControls] = useState(true)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
-  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Enter fullscreen on mount
   useEffect(() => {

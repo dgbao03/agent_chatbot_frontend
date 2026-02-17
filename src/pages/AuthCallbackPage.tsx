@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { supabase } from '../lib/supabase'
+// ========== SUPABASE COMMENTED - Migrating to FastAPI ==========
+// import { supabase } from '../lib/supabase'
 import { authStorage } from '../lib/authStorage'
+import { authService } from '../services/auth'
 
 export function AuthCallbackPage() {
   const navigate = useNavigate()
@@ -24,13 +26,16 @@ export function AuthCallbackPage() {
       return
     }
 
+    // ========== SUPABASE COMMENTED ==========
     // Handle OAuth callback - Supabase automatically processes the hash
     const handleAuthCallback = async () => {
       try {
         // Get session from URL hash (Supabase stores tokens here)
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        // const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        const session = await authService.getSession()
+        const sessionError = session ? null : new Error('No session')
         
-        if (sessionError) {
+        if (sessionError || !session) {
           setError('Failed to authenticate. Please try again.')
           setTimeout(() => {
             navigate('/login', { replace: true })

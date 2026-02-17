@@ -1,15 +1,19 @@
 import { API_URL } from '../constants'
 import type { Message, VersionInfo, PageContent } from '../types'
-import { supabase } from '../lib/supabase'
+// ========== SUPABASE COMMENTED - Migrating to FastAPI ==========
+// import { supabase } from '../lib/supabase'
+import { authService } from './auth'
 
 export const chatService = {
   async sendMessage(
-    userInput: string, 
+    userInput: string,
     conversationId: string | null
   ): Promise<Message & { conversation_id?: string; title?: string }> {
+    // ========== SUPABASE COMMENTED ==========
     // Get JWT token from Supabase session
-    const { data: { session } } = await supabase.auth.getSession()
-    
+    // const { data: { session } } = await supabase.auth.getSession()
+    const session = await authService.getSession()
+
     if (!session?.access_token) {
       throw new Error('Not authenticated. Please login again.')
     }
@@ -96,93 +100,56 @@ export const chatService = {
 }
 
 export const slideService = {
-  async fetchActivePresentationId(conversationId: string): Promise<string | null> {
-    try {
-      const { data, error } = await supabase.rpc('get_active_presentation', {
-        conv_id: conversationId
-      })
-
-      if (error) {
-        console.error('Error fetching active presentation:', error)
-        return null
-      }
-
-      return data // RPC returns UUID directly
-    } catch (error) {
-      console.error('Error fetching active presentation:', error)
-      return null
-    }
+  async fetchActivePresentationId(_conversationId: string): Promise<string | null> {
+    // ========== SUPABASE COMMENTED ==========
+    // try {
+    //   const { data, error } = await supabase.rpc('get_active_presentation', { conv_id: conversationId })
+    //   if (error) return null
+    //   return data
+    // } catch (error) {
+    //   return null
+    // }
+    return null
   },
 
-  async fetchSlideVersions(presentationId: string) {
-    try {
-      const { data, error } = await supabase.rpc('get_presentation_versions', {
-        p_id: presentationId
-      })
-
-      if (error) {
-        console.error('Error fetching versions:', error)
-        throw new Error('Failed to fetch versions')
-      }
-
-      return data || []
-    } catch (error) {
-      console.error('Error fetching versions:', error)
-      throw error
-    }
+  async fetchSlideVersions(_presentationId: string): Promise<VersionInfo[]> {
+    // ========== SUPABASE COMMENTED ==========
+    // try {
+    //   const { data, error } = await supabase.rpc('get_presentation_versions', { p_id: presentationId })
+    //   if (error) throw new Error('Failed to fetch versions')
+    //   return data || []
+    // } catch (error) {
+    //   throw error
+    // }
+    return []
   },
 
-  async fetchVersionContent(presentationId: string, version: number) {
-    try {
-      // First, get presentation metadata to check current version
-      const { data: presentation, error: presError } = await supabase
-        .from('presentations')
-        .select('version, total_pages')
-        .eq('id', presentationId)
-        .single()
-
-      if (presError || !presentation) {
-        throw new Error('Presentation not found')
-      }
-
-      const currentVersion = presentation.version
-      let pages
-
-      // If requesting current version, get from presentation_pages
-      if (version === currentVersion) {
-        const { data: pagesData, error: pagesError } = await supabase.rpc('get_presentation_pages', {
-          p_id: presentationId
-        })
-
-        if (pagesError) {
-          throw new Error('Failed to fetch current version pages')
-        }
-
-        pages = pagesData
-      } else {
-        // Otherwise get from archived versions
-        const { data: pagesData, error: pagesError } = await supabase.rpc('get_version_pages', {
-          p_id: presentationId,
-          v_num: version
-        })
-
-        if (pagesError) {
-          throw new Error('Failed to fetch archived version pages')
-        }
-
-        pages = pagesData
-      }
-
-      return {
-        presentation_id: presentationId,
-        version: version,
-        pages: pages || [],
-        total_pages: pages?.length || 0,
-        html_content: pages || [] // For backward compatibility
-      }
-    } catch (error) {
-      console.error('Error fetching version content:', error)
-      throw error
+  async fetchVersionContent(_presentationId: string, _version: number) {
+    // ========== SUPABASE COMMENTED ==========
+    // try {
+    //   const { data: presentation, error: presError } = await supabase.from('presentations').select('version, total_pages').eq('id', presentationId).single()
+    //   if (presError || !presentation) throw new Error('Presentation not found')
+    //   const currentVersion = presentation.version
+    //   let pages
+    //   if (version === currentVersion) {
+    //     const { data: pagesData, error: pagesError } = await supabase.rpc('get_presentation_pages', { p_id: presentationId })
+    //     if (pagesError) throw new Error('Failed to fetch current version pages')
+    //     pages = pagesData
+    //   } else {
+    //     const { data: pagesData, error: pagesError } = await supabase.rpc('get_version_pages', { p_id: presentationId, v_num: version })
+    //     if (pagesError) throw new Error('Failed to fetch archived version pages')
+    //     pages = pagesData
+    //   }
+    //   return { presentation_id: presentationId, version, pages: pages || [], total_pages: pages?.length || 0, html_content: pages || [] }
+    // } catch (error) {
+    //   throw error
+    // }
+    return {
+      presentation_id: _presentationId,
+      version: _version,
+      pages: [],
+      total_pages: 0,
+      html_content: [],
     }
   },
 
