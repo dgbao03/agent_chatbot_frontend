@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
 import { authService } from '../services/auth'
 import { checkPasswordStrength } from '../lib/passwordStrength'
 
 export function ResetPasswordPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const { isAuthenticated, loading: authLoading } = useAuth()
   const token = searchParams.get('token')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -15,6 +17,12 @@ export function ResetPasswordPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [passwordStrength, setPasswordStrength] = useState(checkPasswordStrength(''))
+
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      navigate('/chat', { replace: true })
+    }
+  }, [isAuthenticated, authLoading, navigate])
 
   useEffect(() => {
     const checkToken = async () => {
@@ -78,6 +86,17 @@ export function ResetPasswordPage() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   if (isValidToken === null) {
