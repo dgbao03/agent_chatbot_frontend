@@ -27,8 +27,7 @@ export function UserMenu({ isCollapsed = false }: UserMenuProps) {
     }
 
     const email = authUser.email || ''
-    const nameFromMetadata = authUser.user_metadata?.name
-    const name = nameFromMetadata || email.split('@')[0] || 'User'
+    const name = authUser.name || authUser.user_metadata?.name || email.split('@')[0] || 'User'
     
     // Generate initials from name
     const getInitials = (nameStr: string): string => {

@@ -1,14 +1,23 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, Link, useLocation } from 'react-router-dom'
+import { useNavigate, Link, useLocation, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { authService } from '../services/auth'
 import { authStorage } from '../lib/authStorage'
 
 type LoginStep = 'email' | 'password'
 
+const OAUTH_ERROR_MESSAGES: Record<string, string> = {
+  oauth_failed: 'Đăng nhập Google thất bại.',
+  user_info_failed: 'Không thể lấy thông tin từ Google.',
+  missing_user_data: 'Thiếu dữ liệu người dùng.',
+  user_creation_failed: 'Không thể tạo tài khoản.',
+  unexpected_error: 'Đã xảy ra lỗi. Vui lòng thử lại.',
+}
+
 export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { signIn, signInWithGoogle, isAuthenticated, loading: authLoading } = useAuth()
   const [step, setStep] = useState<LoginStep>('email')
   const [email, setEmail] = useState('')
@@ -25,10 +34,18 @@ export function LoginPage() {
   useEffect(() => {
     if (location.state && typeof location.state === 'object' && 'message' in location.state) {
       setSuccessMessage(location.state.message as string)
-      // Clear state to prevent showing message on refresh
       window.history.replaceState({}, document.title)
     }
   }, [location])
+
+  // Check for OAuth error in URL (?error=oauth_failed)
+  useEffect(() => {
+    const errorParam = searchParams.get('error')
+    if (errorParam) {
+      setError(OAUTH_ERROR_MESSAGES[errorParam] || 'Đăng nhập thất bại.')
+      setSearchParams({}, { replace: true })
+    }
+  }, [searchParams, setSearchParams])
 
   // Load last auth method on mount
   useEffect(() => {

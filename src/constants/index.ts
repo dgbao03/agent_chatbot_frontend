@@ -1,4 +1,5 @@
 export const API_URL = 'http://localhost:4040/workflows/chat/run'
-// ========== SUPABASE COMMENTED ==========
-// VERSION_API_URL removed - now using Supabase RPC directly (Supabase disabled - use FastAPI)
+
+/** FastAPI backend base URL (auth, CRUD) - mặc định 4040 (trùng main.py) */
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4040'
 

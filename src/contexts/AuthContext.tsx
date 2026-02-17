@@ -1,73 +1,77 @@
-import { createContext, useState, useEffect } from 'react'
+import { createContext, useState, useEffect, useCallback } from 'react'
 import type { ReactNode } from 'react'
-// ========== SUPABASE COMMENTED - Migrating to FastAPI ==========
-// import { supabase } from '../lib/supabase'
 import { authService } from '../services/auth'
-import type { User, Session } from '@supabase/supabase-js'
+import type { AuthUser, AuthSession } from '../types/auth'
+
+const AUTH_SESSION_UPDATED = 'auth-session-updated'
 
 interface AuthContextType {
-  user: User | null
-  session: Session | null
+  user: AuthUser | null
+  session: AuthSession | null
   loading: boolean
   isAuthenticated: boolean
   signIn: (email: string, password: string) => Promise<{ error: string }>
   signUp: (email: string, password: string, name?: string) => Promise<{ error: string }>
   signInWithGoogle: () => Promise<{ error: string }>
   signOut: () => Promise<void>
+  refreshSession: () => Promise<void>
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [session, setSession] = useState<Session | null>(null)
+  const [user, setUser] = useState<AuthUser | null>(null)
+  const [session, setSession] = useState<AuthSession | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Check initial session and setup auth state listener
-  useEffect(() => {
-    // Get initial session
-    authService.getSession().then((session) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
-
-    // ========== SUPABASE COMMENTED - Migrating to FastAPI ==========
-    // Listen to auth state changes (Supabase onAuthStateChange)
-    // const {
-    //   data: { subscription },
-    // } = supabase.auth.onAuthStateChange(async (event, session) => {
-    //   setSession(session)
-    //   setUser(session?.user ?? null)
-    //   setLoading(false)
-    //   if (event === 'SIGNED_OUT') { }
-    // })
-    // return () => { subscription.unsubscribe() }
-
-    // Stub: không có subscription khi dùng stub
-    return () => {}
+  const refreshSession = useCallback(async () => {
+    const s = await authService.getSession()
+    if (s && s.user) {
+      setSession({ access_token: s.access_token, refresh_token: s.refresh_token || '', user: s.user })
+      setUser(s.user)
+    } else {
+      setSession(null)
+      setUser(null)
+    }
+    setLoading(false)
   }, [])
 
+  useEffect(() => {
+    refreshSession()
+  }, [refreshSession])
+
+  useEffect(() => {
+    const handler = () => {
+      refreshSession()
+    }
+    window.addEventListener(AUTH_SESSION_UPDATED, handler)
+    return () => window.removeEventListener(AUTH_SESSION_UPDATED, handler)
+  }, [refreshSession])
+
   const signIn = async (email: string, password: string) => {
-    const { error } = await authService.signIn({ email, password })
-    // State will be updated automatically via onAuthStateChange
+    const { user: u, error } = await authService.signIn({ email, password })
+    if (!error && u) {
+      await refreshSession()
+    }
     return { error }
   }
 
   const signUp = async (email: string, password: string, name?: string) => {
-    const { error } = await authService.signUp({ email, password, name })
-    // State will be updated automatically via onAuthStateChange
+    const { user: u, error } = await authService.signUp({ email, password, name })
+    if (!error && u) {
+      await refreshSession()
+    }
     return { error }
   }
 
   const signOut = async () => {
     await authService.signOut()
-    // State will be updated automatically via onAuthStateChange
+    setSession(null)
+    setUser(null)
   }
 
   const signInWithGoogle = async () => {
     const { error } = await authService.signInWithGoogle()
-    // State will be updated automatically via onAuthStateChange after redirect
     return { error }
   }
 
@@ -80,8 +84,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signUp,
     signInWithGoogle,
     signOut,
+    refreshSession,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
+export function emitAuthSessionUpdated() {
+  window.dispatchEvent(new CustomEvent(AUTH_SESSION_UPDATED))
+}
