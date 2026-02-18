@@ -41,7 +41,7 @@ function toAuthUser(data: {
   email: string
   name?: string | null
   avatar_url?: string | null
-  provider?: string
+  providers?: string[]
 }): AuthUser {
   return {
     id: data.user_id,
@@ -49,6 +49,7 @@ function toAuthUser(data: {
     name: data.name ?? null,
     avatar_url: data.avatar_url ?? null,
     user_metadata: data.name ? { name: data.name } : undefined,
+    providers: data.providers,
   }
 }
 
@@ -95,7 +96,7 @@ export const authApi = {
       email: string
       name?: string | null
       avatar_url?: string | null
-      provider?: string
+      providers?: string[]
     }>(res)
     if (error) return { user: null, error }
     return { user: data ? toAuthUser(data) : null, error: '' }

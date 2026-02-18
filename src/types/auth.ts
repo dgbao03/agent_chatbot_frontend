@@ -5,6 +5,8 @@ export interface AuthUser {
   name?: string | null
   avatar_url?: string | null
   user_metadata?: { name?: string }
+  /** List of auth providers (email, google) */
+  providers?: string[]
 }
 
 /** Auth session - access_token, refresh_token, user */
