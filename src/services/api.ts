@@ -123,12 +123,15 @@ export const slideService = {
     if (error) throw new Error(error)
     if (!data || !Array.isArray(data)) return []
 
-    return data.map((v) => ({
+    const mapped = data.map((v) => ({
       version: v.version,
       timestamp: v.timestamp ?? v.created_at ?? '',
       user_request: v.user_request ?? '',
       is_current: v.is_current,
     }))
+    // Reverse: backend returns [newest, ..., oldest], UI expects [oldest, ..., newest]
+    // So Version 1 = oldest, Version N = newest (chronological)
+    return mapped.reverse()
   },
 
   async fetchVersionContent(presentationId: string, version: number) {
