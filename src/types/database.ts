@@ -1,6 +1,4 @@
-// ========== SUPABASE COMMENTED ==========
-// Database types matching Supabase schema (Supabase disabled - use FastAPI)
-
+/** Database types matching FastAPI response schema */
 export interface Conversation {
   id: string
   user_id: string

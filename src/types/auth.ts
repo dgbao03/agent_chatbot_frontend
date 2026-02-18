@@ -1,4 +1,4 @@
-/** Auth user - tương thích UserMenu, thay thế Supabase User */
+/** Auth user - used by UserMenu, AuthContext */
 export interface AuthUser {
   id: string
   email: string
