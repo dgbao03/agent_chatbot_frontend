@@ -252,7 +252,7 @@ export function UserMenu({ isCollapsed = false }: UserMenuProps) {
             
             {/* Confirmation Text */}
             <p className="text-sm text-gray-700 mb-6">
-              Log out of ... as {user.email}?
+              Log out of Agent Chat as {user.email}?
             </p>
             
             {/* Buttons */}

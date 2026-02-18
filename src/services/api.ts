@@ -48,6 +48,7 @@ export const chatService = {
       let total_pages: number | undefined
       let conversation_id: string | undefined
       let title: string | undefined
+      let slide_id: string | undefined
 
       if (typeof result === 'string') {
         content = result
@@ -59,6 +60,7 @@ export const chatService = {
         total_pages = result.total_pages
         conversation_id = result.conversation_id
         title = result.title
+        slide_id = result.slide_id
       } else {
         content = JSON.stringify(result)
       }
@@ -70,6 +72,7 @@ export const chatService = {
         intent,
         pages,
         total_pages,
+        slide_id,
       }
 
       if (conversation_id) {
