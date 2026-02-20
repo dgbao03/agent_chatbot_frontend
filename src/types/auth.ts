@@ -9,9 +9,8 @@ export interface AuthUser {
   providers?: string[]
 }
 
-/** Auth session - access_token, refresh_token, user */
+/** Auth session - access_token, user (refresh_token in httpOnly cookie) */
 export interface AuthSession {
   access_token: string
-  refresh_token: string
   user: AuthUser
 }

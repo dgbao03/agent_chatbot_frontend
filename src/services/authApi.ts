@@ -59,8 +59,9 @@ export const authApi = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, name: name || null }),
+      credentials: 'include',
     })
-    const { data, error } = await handleResponse<{ access_token: string; refresh_token: string; user_id: string; email: string }>(res)
+    const { data, error } = await handleResponse<{ access_token: string; user_id: string; email: string }>(res)
     if (error) return { data: null, error }
     return { data, error: '' }
   },
@@ -70,19 +71,20 @@ export const authApi = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
+      credentials: 'include',
     })
-    const { data, error } = await handleResponse<{ access_token: string; refresh_token: string; user_id: string; email: string }>(res)
+    const { data, error } = await handleResponse<{ access_token: string; user_id: string; email: string }>(res)
     if (error) return { data: null, error }
     return { data, error: '' }
   },
 
-  async refreshToken(refresh_token: string) {
+  async refreshToken() {
     const res = await fetch(`${AUTH_PREFIX}/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh_token }),
+      credentials: 'include',
     })
-    const { data, error } = await handleResponse<{ access_token: string; refresh_token: string; user_id: string; email: string }>(res)
+    const { data, error } = await handleResponse<{ access_token: string; user_id: string; email: string }>(res)
     if (error) return { data: null, error }
     return { data, error: '' }
   },
@@ -109,14 +111,14 @@ export const authApi = {
     return { providers: data?.providers ?? [], error: '' }
   },
 
-  async signOut(access_token: string, refresh_token: string) {
+  async signOut(access_token: string) {
     const res = await fetch(`${AUTH_PREFIX}/signout`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${access_token}`,
       },
-      body: JSON.stringify({ refresh_token }),
+      credentials: 'include',
     })
     const { error } = await handleResponse<{ message?: string }>(res)
     return { error }

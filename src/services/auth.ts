@@ -16,7 +16,6 @@ export interface SignInData {
 /** Session với access_token - tương thích api.ts (session.access_token) */
 export interface SessionLike {
   access_token: string
-  refresh_token?: string
   user?: AuthUser
 }
 
@@ -32,13 +31,10 @@ function isTokenExpired(token: string, bufferSeconds = 60): boolean {
   }
 }
 
-async function buildSessionFromTokens(
-  access_token: string,
-  refresh_token: string
-): Promise<AuthSession | null> {
+async function buildSessionFromTokens(access_token: string): Promise<AuthSession | null> {
   const { user, error } = await authApi.getMe(access_token)
   if (error || !user) return null
-  return { access_token, refresh_token, user }
+  return { access_token, user }
 }
 
 export const authService = {
@@ -48,7 +44,7 @@ export const authService = {
       if (error) return { user: null, error }
       if (!tokens) return { user: null, error: 'Đăng ký thất bại' }
 
-      const session = await buildSessionFromTokens(tokens.access_token, tokens.refresh_token)
+      const session = await buildSessionFromTokens(tokens.access_token)
       if (!session) return { user: null, error: 'Không thể lấy thông tin người dùng' }
 
       tokenStorage.setStoredSession(session)
@@ -64,7 +60,7 @@ export const authService = {
       if (error) return { user: null, error }
       if (!tokens) return { user: null, error: 'Đăng nhập thất bại' }
 
-      const session = await buildSessionFromTokens(tokens.access_token, tokens.refresh_token)
+      const session = await buildSessionFromTokens(tokens.access_token)
       if (!session) return { user: null, error: 'Không thể lấy thông tin người dùng' }
 
       tokenStorage.setStoredSession(session)
@@ -77,8 +73,8 @@ export const authService = {
   async signOut(): Promise<{ error: string }> {
     try {
       const session = tokenStorage.getStoredSession()
-      if (session?.access_token && session?.refresh_token) {
-        await authApi.signOut(session.access_token, session.refresh_token)
+      if (session?.access_token) {
+        await authApi.signOut(session.access_token)
       }
       tokenStorage.clearStoredSession()
       return { error: '' }
@@ -94,19 +90,18 @@ export const authService = {
       if (!session) return null
 
       if (isTokenExpired(session.access_token)) {
-        const { data: tokens, error } = await authApi.refreshToken(session.refresh_token)
+        const { data: tokens, error } = await authApi.refreshToken()
         if (error || !tokens) {
           tokenStorage.clearStoredSession()
           return null
         }
-        session = await buildSessionFromTokens(tokens.access_token, tokens.refresh_token)
+        session = await buildSessionFromTokens(tokens.access_token)
         if (!session) return null
         tokenStorage.setStoredSession(session)
       }
 
       return {
         access_token: session.access_token,
-        refresh_token: session.refresh_token,
         user: session.user,
       }
     } catch {

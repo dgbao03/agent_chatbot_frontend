@@ -27,7 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshSession = useCallback(async () => {
     const s = await authService.getSession()
     if (s && s.user) {
-      setSession({ access_token: s.access_token, refresh_token: s.refresh_token || '', user: s.user })
+      setSession({ access_token: s.access_token, user: s.user })
       setUser(s.user)
     } else {
       setSession(null)

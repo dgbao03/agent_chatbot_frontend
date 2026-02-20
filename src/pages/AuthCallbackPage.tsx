@@ -27,9 +27,8 @@ export function AuthCallbackPage() {
     }
 
     const accessToken = searchParams.get('access_token')
-    const refreshToken = searchParams.get('refresh_token')
 
-    if (!accessToken || !refreshToken) {
+    if (!accessToken) {
       setError('Thiếu thông tin xác thực.')
       setTimeout(() => navigate('/login', { replace: true }), 3000)
       return
@@ -46,7 +45,6 @@ export function AuthCallbackPage() {
 
         tokenStorage.setStoredSession({
           access_token: accessToken,
-          refresh_token: refreshToken,
           user,
         })
         authStorage.saveLastAuthMethod('google')
