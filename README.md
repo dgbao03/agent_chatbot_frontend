@@ -1,73 +1,100 @@
-# React + TypeScript + Vite
+# Agent Chat — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React-based chat interface powered by a LLM backend. Supports conversation management, AI-generated slide presentations, and full authentication flows.
 
-Currently, two official plugins are available:
+> **Backend repository:** [agent_chat_application_backend](https://github.com/dgbao03/agent_chat_application_backend)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Authentication
+- Sign up with email and password
+- Sign in with email or Google OAuth
+- Forgot password / reset password via email link
+- Persistent sessions with automatic token refresh
 
-## Expanding the ESLint configuration
+### Chat
+- Real-time conversation with an LLM agent
+- Markdown rendering with syntax-highlighted code blocks
+- Conversation history with sidebar navigation
+- Rename and delete conversations
+- Search across all conversations
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### AI Slide Viewer
+- Preview AI-generated HTML slide presentations inline
+- Multi-page slide navigation
+- Version history — browse and switch between previous versions
+- Fullscreen presentation mode with keyboard navigation (←, →, Space, Esc)
+- HTML source view for each slide
+- Download panel (coming soon: PPTX, PDF, HTML, Google Slides)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Tech Stack
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| Category | Library |
+|----------|---------|
+| Framework | React 19 + TypeScript |
+| Build tool | Vite 7 |
+| Routing | React Router DOM 7 |
+| Styling | Tailwind CSS 4 |
+| Markdown | react-markdown + react-syntax-highlighter |
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- Backend server running — see [backend repo](https://github.com/dgbao03/agent_chat_application_backend)
+
+### Installation
+
+```bash
+# Clone the repository
+git clone <repo-url>
+cd agent_chat_frontend
+
+# Install dependencies
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Environment Variables
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Create a `.env` file in the project root:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```env
+VITE_API_BASE_URL=http://localhost:4040
 ```
+
+> This should point to the running backend server URL.
+
+### Run
+
+```bash
+npm run dev
+```
+
+The app will be available at `http://localhost:5174`.
+
+---
+
+## Demo
+
+### Sign In
+
+![Sign In](https://res.cloudinary.com/dw3x8orox/image/upload/v1772208932/Screenshot_2026-02-27_at_23.13.49_oactes.png)
+
+### Sign Up
+
+![Sign Up](https://res.cloudinary.com/dw3x8orox/image/upload/v1772208932/Screenshot_2026-02-27_at_23.14.03_ted3ha.png)
+
+### Chat UI
+
+![Chat UI 1](https://res.cloudinary.com/dw3x8orox/image/upload/v1772208933/Screenshot_2026-02-27_at_23.12.42_syyuac.png)
+
+![Chat UI 2](https://res.cloudinary.com/dw3x8orox/image/upload/v1772208933/Screenshot_2026-02-27_at_23.12.52_hrwaoq.png)
+
+![Chat UI 3](https://res.cloudinary.com/dw3x8orox/image/upload/v1772208933/Screenshot_2026-02-27_at_23.13.33_uc2umz.png)
