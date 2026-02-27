@@ -4,7 +4,6 @@ import { ProtectedRoute } from './components/Layout/ProtectedRoute'
 import { ChatPage, LoginPage, SignupPage, AuthCallbackPage, ForgotPasswordPage, ResetPasswordPage } from './pages'
 import { useAuth } from './hooks/useAuth'
 
-// Component to handle root redirect based on auth state
 function RootRedirect() {
   const { isAuthenticated, loading } = useAuth()
   

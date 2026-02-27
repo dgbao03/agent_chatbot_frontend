@@ -27,7 +27,6 @@ export function UserMenu({ isCollapsed = false }: UserMenuProps) {
     const email = authUser.email || ''
     const name = authUser.name || authUser.user_metadata?.name || email.split('@')[0] || 'User'
     
-    // Generate initials from name
     const getInitials = (nameStr: string): string => {
       const parts = nameStr.trim().split(' ')
       if (parts.length >= 2) {
@@ -48,13 +47,13 @@ export function UserMenu({ isCollapsed = false }: UserMenuProps) {
   const user = getUserData()
 
   const handleProfileClick = () => {
-    setIsOpen(false) // Close menu
-    setShowProfileModal(true) // Show profile modal
+    setIsOpen(false)
+    setShowProfileModal(true)
   }
 
   const handleLogoutClick = () => {
-    setIsOpen(false) // Close menu
-    setShowLogoutModal(true) // Show logout confirmation modal
+    setIsOpen(false)
+    setShowLogoutModal(true)
   }
 
   const handleConfirmLogout = async () => {
@@ -70,7 +69,6 @@ export function UserMenu({ isCollapsed = false }: UserMenuProps) {
     setShowProfileModal(false)
   }
 
-  // Close menu when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -100,10 +98,8 @@ export function UserMenu({ isCollapsed = false }: UserMenuProps) {
           </div>
         </button>
 
-        {/* Dropdown Menu for collapsed view */}
         {isOpen && (
           <div className="absolute bottom-full left-0 mb-2 w-[200px] bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden">
-            {/* Menu Items */}
             <div className="py-2">
               <button 
                 onClick={handleProfileClick}
@@ -137,7 +133,6 @@ export function UserMenu({ isCollapsed = false }: UserMenuProps) {
 
   return (
     <div className="relative" ref={menuRef}>
-      {/* User Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-200 rounded-lg transition-colors"
@@ -150,10 +145,8 @@ export function UserMenu({ isCollapsed = false }: UserMenuProps) {
         </div>
       </button>
 
-      {/* Dropdown Menu */}
       {isOpen && (
         <div className="absolute bottom-full left-0 mb-2 w-[200px] bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden">
-          {/* Menu Items */}
           <div className="py-2">
             <button 
               onClick={handleProfileClick}
@@ -182,18 +175,14 @@ export function UserMenu({ isCollapsed = false }: UserMenuProps) {
         </div>
       )}
 
-      {/* Profile Modal - Using Portal to render outside sidebar */}
       {showProfileModal && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center">
-          {/* Backdrop */}
           <div 
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={handleCloseProfile}
           />
           
-          {/* Modal */}
           <div className="relative bg-white rounded-lg shadow-xl w-[90%] max-w-[450px] p-6">
-            {/* Close Button */}
             <button
               onClick={handleCloseProfile}
               className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-lg transition-colors"
@@ -204,14 +193,11 @@ export function UserMenu({ isCollapsed = false }: UserMenuProps) {
               </svg>
             </button>
 
-            {/* Title */}
             <h2 className="text-xl font-semibold text-gray-900 mb-6 pr-8">
               Profile
             </h2>
             
-            {/* User Info */}
             <div className="space-y-5">
-              {/* Name */}
               <div>
                 <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">
                   Name
@@ -219,7 +205,6 @@ export function UserMenu({ isCollapsed = false }: UserMenuProps) {
                 <p className="text-base text-gray-900">{user.name}</p>
               </div>
               
-              {/* Email */}
               <div>
                 <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">
                   Email
@@ -232,30 +217,23 @@ export function UserMenu({ isCollapsed = false }: UserMenuProps) {
         document.body
       )}
 
-      {/* Logout Confirmation Modal - Using Portal to render outside sidebar */}
       {showLogoutModal && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center">
-          {/* Backdrop */}
           <div 
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={handleCancelLogout}
           />
           
-          {/* Modal */}
           <div className="relative bg-white rounded-lg shadow-xl w-[90%] max-w-[400px] p-6">
-            {/* Title */}
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
               Are you sure you want to log out?
             </h2>
             
-            {/* Confirmation Text */}
             <p className="text-sm text-gray-700 mb-6">
               Log out of Agent Chat as {user.email}?
             </p>
             
-            {/* Buttons */}
             <div className="flex flex-col gap-3">
-              {/* Log out button */}
               <button
                 onClick={handleConfirmLogout}
                 className="w-full px-4 py-2.5 bg-gray-900 text-white rounded-lg border border-blue-500 hover:bg-gray-800 transition-colors font-medium"
@@ -263,7 +241,6 @@ export function UserMenu({ isCollapsed = false }: UserMenuProps) {
                 Log out
               </button>
               
-              {/* Cancel button */}
               <button
                 onClick={handleCancelLogout}
                 className="w-full px-4 py-2.5 bg-white text-gray-900 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors font-medium"
@@ -278,4 +255,3 @@ export function UserMenu({ isCollapsed = false }: UserMenuProps) {
     </div>
   )
 }
-

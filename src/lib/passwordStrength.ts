@@ -8,9 +8,6 @@ export interface PasswordStrengthResult {
   criteria: PasswordCriteria[]
 }
 
-/**
- * Check password strength and return criteria status
- */
 export function checkPasswordStrength(password: string): PasswordStrengthResult {
   const criteria: PasswordCriteria[] = [
     {

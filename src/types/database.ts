@@ -1,4 +1,3 @@
-/** Database types matching FastAPI response schema */
 export interface Conversation {
   id: string
   user_id: string
@@ -38,7 +37,6 @@ export interface UserFact {
   updated_at: string
 }
 
-// API types
 export interface CreateConversationData {
   title?: string
 }

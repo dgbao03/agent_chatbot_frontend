@@ -49,7 +49,6 @@ export function ErrorBanner({
       `}</style>
       <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] animate-fade-in">
         <div className="bg-red-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 min-w-[300px] max-w-[600px]">
-        {/* Warning Icon */}
         <svg 
           className="w-5 h-5 flex-shrink-0" 
           fill="none" 
@@ -64,10 +63,8 @@ export function ErrorBanner({
           />
         </svg>
         
-        {/* Error Message */}
         <p className="flex-1 text-sm font-medium">{message}</p>
         
-        {/* Close Button */}
         {onClose && (
           <button
             onClick={() => {
@@ -97,4 +94,3 @@ export function ErrorBanner({
     </>
   )
 }
-

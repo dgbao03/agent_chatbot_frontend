@@ -3,9 +3,6 @@ const LAST_AUTH_METHOD_KEY = 'lastAuthMethod'
 export type AuthMethod = 'google' | 'email'
 
 export const authStorage = {
-  /**
-   * Save the last authentication method used
-   */
   saveLastAuthMethod(method: AuthMethod): void {
     try {
       localStorage.setItem(LAST_AUTH_METHOD_KEY, method)
@@ -14,9 +11,6 @@ export const authStorage = {
     }
   },
 
-  /**
-   * Get the last authentication method used
-   */
   getLastAuthMethod(): AuthMethod | null {
     try {
       const method = localStorage.getItem(LAST_AUTH_METHOD_KEY)
@@ -30,14 +24,12 @@ export const authStorage = {
     }
   },
 
-  /**
-   * Clear the last authentication method
-   */
   clearLastAuthMethod(): void {
     try {
       localStorage.removeItem(LAST_AUTH_METHOD_KEY)
     } catch (error) {
       console.error('Failed to clear last auth method:', error)
+      return
     }
   }
 }

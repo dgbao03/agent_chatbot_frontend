@@ -9,10 +9,6 @@ import type {
   UpdateConversationData,
 } from '../types/database'
 
-// ============================================
-// CONVERSATIONS
-// ============================================
-
 export const conversationService = {
   async fetchConversations(): Promise<{ data: Conversation[]; error: string }> {
     const { data, error } = await fetchWithAuth<Conversation[]>('/api/conversations')
@@ -21,7 +17,7 @@ export const conversationService = {
   },
 
   async createConversation(_data: CreateConversationData): Promise<{ data: Conversation | null; error: string }> {
-    return { data: null, error: 'Conversation được tạo tự động khi gửi tin nhắn đầu tiên' }
+    return { data: null, error: 'Conversation is created automatically on first message' }
   },
 
   async updateConversation(
@@ -55,10 +51,6 @@ export const conversationService = {
   },
 }
 
-// ============================================
-// MESSAGES
-// ============================================
-
 export const messageService = {
   async fetchMessages(conversationId: string): Promise<{ data: Message[]; error: string }> {
     const { data, error } = await fetchWithAuth<Message[]>(
@@ -73,17 +65,13 @@ export const messageService = {
   },
 
   async createMessage(_data: CreateMessageData): Promise<{ data: Message | null; error: string }> {
-    return { data: null, error: 'Message được tạo qua workflow chat' }
+    return { data: null, error: 'Message is created via chat workflow' }
   },
 
   async markAsSummarized(_messageIds: string[]): Promise<{ error: string }> {
     return { error: '' }
   },
 }
-
-// ============================================
-// SUMMARIES (Backend only - không gọi từ FE)
-// ============================================
 
 export const summaryService = {
   async fetchSummaries(_conversationId: string): Promise<{ data: ConversationSummary[]; error: string }> {
@@ -97,10 +85,6 @@ export const summaryService = {
     return { data: null, error: '' }
   },
 }
-
-// ============================================
-// USER FACTS (Backend tools only - không gọi từ FE)
-// ============================================
 
 export const userFactsService = {
   async fetchUserFacts(): Promise<{ data: UserFact[]; error: string }> {

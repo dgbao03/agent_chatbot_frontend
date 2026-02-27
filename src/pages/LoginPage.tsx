@@ -7,11 +7,11 @@ import { authStorage } from '../lib/authStorage'
 type LoginStep = 'email' | 'password'
 
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
-  oauth_failed: 'Đăng nhập Google thất bại.',
-  user_info_failed: 'Không thể lấy thông tin từ Google.',
-  missing_user_data: 'Thiếu dữ liệu người dùng.',
-  user_creation_failed: 'Không thể tạo tài khoản.',
-  unexpected_error: 'Đã xảy ra lỗi. Vui lòng thử lại.',
+  oauth_failed: 'Google sign-in failed.',
+  user_info_failed: 'Unable to retrieve information from Google.',
+  missing_user_data: 'Missing user data.',
+  user_creation_failed: 'Unable to create account.',
+  unexpected_error: 'An error occurred. Please try again.',
 }
 
 export function LoginPage() {
@@ -30,7 +30,6 @@ export function LoginPage() {
   const [googleRedirectMessage, setGoogleRedirectMessage] = useState(false)
   const [lastAuthMethod, setLastAuthMethod] = useState<'google' | 'email' | null>(null)
 
-  // Check for success message from navigation state
   useEffect(() => {
     if (location.state && typeof location.state === 'object' && 'message' in location.state) {
       setSuccessMessage(location.state.message as string)
@@ -38,22 +37,19 @@ export function LoginPage() {
     }
   }, [location])
 
-  // Check for OAuth error in URL (?error=oauth_failed)
   useEffect(() => {
     const errorParam = searchParams.get('error')
     if (errorParam) {
-      setError(OAUTH_ERROR_MESSAGES[errorParam] || 'Đăng nhập thất bại.')
+      setError(OAUTH_ERROR_MESSAGES[errorParam] || 'Sign-in failed.')
       setSearchParams({}, { replace: true })
     }
   }, [searchParams, setSearchParams])
 
-  // Load last auth method on mount
   useEffect(() => {
     const method = authStorage.getLastAuthMethod()
     setLastAuthMethod(method)
   }, [])
 
-  // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && !authLoading) {
       navigate('/chat', { replace: true })
@@ -72,11 +68,9 @@ export function LoginPage() {
     setIsCheckingProviders(true)
 
     try {
-      // Check auth providers for this email
       const { providers, error: providersError } = await authService.checkUserAuthProviders(email)
 
       if (providersError) {
-        // If check fails, proceed to password screen (fallback)
         setStep('password')
         setIsCheckingProviders(false)
         return
@@ -86,7 +80,6 @@ export function LoginPage() {
       const hasGoogle = providers.includes('google')
 
       if (!hasEmail && hasGoogle) {
-        // Only Google provider - show message and redirect
         setGoogleRedirectMessage(true)
         setTimeout(async () => {
           const { error } = await signInWithGoogle()
@@ -99,11 +92,9 @@ export function LoginPage() {
         return
       }
 
-      // Has email provider (either only email or both email and google)
       setStep('password')
       setIsCheckingProviders(false)
     } catch (err) {
-      // On error, proceed to password screen (fallback)
       setStep('password')
       setIsCheckingProviders(false)
     }
@@ -126,9 +117,7 @@ export function LoginPage() {
       if (error) {
         setError('Invalid email or password')
       } else {
-        // Save email as last auth method
         authStorage.saveLastAuthMethod('email')
-        // Success - navigation will happen via useEffect when isAuthenticated changes
         navigate('/chat', { replace: true })
       }
     } catch (err) {
@@ -144,7 +133,6 @@ export function LoginPage() {
     setError('')
   }
 
-  // Show loading if checking auth state
   if (authLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-white">
@@ -158,37 +146,31 @@ export function LoginPage() {
 
   return (
     <div className="flex flex-col h-screen bg-white">
-      {/* Header */}
       <header className="border-b border-gray-200 px-6 py-4 flex-shrink-0">
         <h1 className="text-lg font-semibold text-gray-900">
           Chat Assistant
         </h1>
       </header>
 
-      {/* Main Content */}
       <div className="flex-1 flex items-center justify-center px-6 py-8">
         <div className="max-w-md w-full">
-          {/* Title */}
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">Sign In</h2>
             <p className="text-gray-600">Welcome back!</p>
           </div>
 
-          {/* Success Message */}
           {successMessage && (
             <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-2xl">
               <p className="text-sm text-green-600">{successMessage}</p>
             </div>
           )}
 
-          {/* Error Message */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl">
               <p className="text-sm text-red-600">{error}</p>
             </div>
           )}
 
-          {/* Email Step */}
           {step === 'email' && (
             <form onSubmit={handleEmailSubmit} className="space-y-5">
               <div>
@@ -223,7 +205,6 @@ export function LoginPage() {
             </form>
           )}
 
-          {/* Password Step */}
           {step === 'password' && (
             <form onSubmit={handlePasswordSubmit} className="space-y-5">
               <div>
@@ -305,7 +286,6 @@ export function LoginPage() {
             </form>
           )}
 
-          {/* Divider - Only show on email step */}
           {step === 'email' && (
             <>
               <div className="relative my-6">
@@ -317,12 +297,10 @@ export function LoginPage() {
                 </div>
               </div>
 
-              {/* Google Sign In Button */}
               <div className="relative">
                 <button
                   type="button"
                   onClick={async () => {
-                    // Save google as last auth method when clicked
                     authStorage.saveLastAuthMethod('google')
                     const { error } = await signInWithGoogle()
                     if (error) {
@@ -351,7 +329,6 @@ export function LoginPage() {
                   </svg>
                   <span>Sign in with Google</span>
                 </button>
-                {/* Last used flag */}
                 {lastAuthMethod === 'google' && (
                   <div className="absolute -top-2 -right-2 px-2.5 py-1 bg-white border border-gray-300 rounded-lg z-10">
                     <span className="text-xs text-gray-900 font-medium">Last used</span>
@@ -361,7 +338,6 @@ export function LoginPage() {
             </>
           )}
 
-          {/* Footer */}
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Don't have an account?{' '}
@@ -373,7 +349,6 @@ export function LoginPage() {
         </div>
       </div>
 
-      {/* Google Redirect Toast - Bottom of screen */}
       {googleRedirectMessage && (
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
           <div className="px-6 py-4 bg-blue-50 border border-blue-200 rounded-2xl shadow-lg">

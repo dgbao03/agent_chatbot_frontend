@@ -87,7 +87,6 @@ export function MessageItem({ message, onViewSlide }: MessageItemProps) {
                 </ReactMarkdown>
               </div>
               
-              {/* PPTX Preview Card */}
               {message.intent === 'PPTX' && message.pages && message.pages.length > 0 && onViewSlide && (
                 <PPTXPreviewCard 
                   pages={message.pages}

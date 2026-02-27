@@ -53,7 +53,7 @@ export function SlideViewer({
 
   const handleFullscreenClick = () => {
     setIsFullscreen(true)
-    setCurrentSlideIndex(0) // Start from first slide
+    setCurrentSlideIndex(0)
   }
 
   const handleExitFullscreen = () => {
@@ -81,7 +81,6 @@ export function SlideViewer({
         onScaleChange={onScaleChange}
       />
         
-        {/* Version Navigation Bar - Fixed at bottom */}
         <VersionNavigationBar
           versions={versions}
           currentVersion={currentVersion}
@@ -92,13 +91,11 @@ export function SlideViewer({
         />
     </div>
       
-      {/* Download Modal */}
       <DownloadModal
         isOpen={showDownloadModal}
         onClose={handleCloseDownloadModal}
       />
 
-      {/* Fullscreen Presentation */}
       {isFullscreen && (
         <FullscreenPresentation
           pages={pages}
@@ -112,4 +109,3 @@ export function SlideViewer({
     </>
   )
 }
-

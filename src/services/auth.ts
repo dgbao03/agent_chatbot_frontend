@@ -13,7 +13,6 @@ export interface SignInData {
   password: string
 }
 
-/** Session với access_token - tương thích api.ts (session.access_token) */
 export interface SessionLike {
   access_token: string
   user?: AuthUser
@@ -42,15 +41,15 @@ export const authService = {
     try {
       const { data: tokens, error } = await authApi.register(data.email, data.password, data.name)
       if (error) return { user: null, error }
-      if (!tokens) return { user: null, error: 'Đăng ký thất bại' }
+      if (!tokens) return { user: null, error: 'Registration failed' }
 
       const session = await buildSessionFromTokens(tokens.access_token)
-      if (!session) return { user: null, error: 'Không thể lấy thông tin người dùng' }
+      if (!session) return { user: null, error: 'Unable to retrieve user information' }
 
       tokenStorage.setStoredSession(session)
       return { user: session.user, error: '' }
     } catch {
-      return { user: null, error: 'Lỗi kết nối. Vui lòng thử lại.' }
+      return { user: null, error: 'Connection error. Please try again.' }
     }
   },
 
@@ -58,15 +57,15 @@ export const authService = {
     try {
       const { data: tokens, error } = await authApi.login(data.email, data.password)
       if (error) return { user: null, error }
-      if (!tokens) return { user: null, error: 'Đăng nhập thất bại' }
+      if (!tokens) return { user: null, error: 'Sign-in failed' }
 
       const session = await buildSessionFromTokens(tokens.access_token)
-      if (!session) return { user: null, error: 'Không thể lấy thông tin người dùng' }
+      if (!session) return { user: null, error: 'Unable to retrieve user information' }
 
       tokenStorage.setStoredSession(session)
       return { user: session.user, error: '' }
     } catch {
-      return { user: null, error: 'Lỗi kết nối. Vui lòng thử lại.' }
+      return { user: null, error: 'Connection error. Please try again.' }
     }
   },
 
@@ -120,7 +119,7 @@ export const authService = {
       if (error) return { exists: false, error }
       return { exists: providers.length === 1, error: '' }
     } catch {
-      return { exists: false, error: 'Lỗi kết nối. Vui lòng thử lại.' }
+      return { exists: false, error: 'Connection error. Please try again.' }
     }
   },
 
@@ -130,7 +129,7 @@ export const authService = {
       if (error) return { providers: [], error }
       return { providers, error: '' }
     } catch {
-      return { providers: [], error: 'Lỗi kết nối. Vui lòng thử lại.' }
+      return { providers: [], error: 'Connection error. Please try again.' }
     }
   },
 
@@ -138,11 +137,11 @@ export const authService = {
     try {
       const { url, error } = await authApi.getGoogleAuthUrl()
       if (error) return { error }
-      if (!url) return { error: 'Không thể lấy URL đăng nhập Google' }
+      if (!url) return { error: 'Unable to retrieve Google sign-in URL' }
       window.location.href = url
       return { error: '' }
     } catch {
-      return { error: 'Không thể đăng nhập với Google. Vui lòng thử lại.' }
+      return { error: 'Unable to sign in with Google. Please try again.' }
     }
   },
 

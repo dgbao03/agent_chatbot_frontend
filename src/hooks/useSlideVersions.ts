@@ -15,7 +15,6 @@ export function useSlideVersions() {
       const fetchedVersions = await slideService.fetchSlideVersions(slideId)
       setVersions(fetchedVersions)
       
-      // Nếu có targetHtml, tìm version nào match với HTML đó
       if (targetHtml && fetchedVersions.length > 0) {
         const matchedVersion = await slideService.matchVersionByHtml(
           slideId, 
@@ -26,7 +25,6 @@ export function useSlideVersions() {
         if (matchedVersion !== null) {
           setCurrentVersion(matchedVersion)
         } else {
-          // Không tìm thấy match, fallback về version cao nhất
           const current = fetchedVersions.find((v: VersionInfo) => v.is_current)
           if (current) {
             setCurrentVersion(current.version)
@@ -36,12 +34,10 @@ export function useSlideVersions() {
           }
         }
       } else {
-        // Không có targetHtml, set current version là version cao nhất (current)
         const current = fetchedVersions.find((v: VersionInfo) => v.is_current)
         if (current) {
           setCurrentVersion(current.version)
         } else if (fetchedVersions.length > 0) {
-          // Nếu không có is_current flag, lấy version cao nhất
           const maxVersion = Math.max(...fetchedVersions.map((v: VersionInfo) => v.version))
           setCurrentVersion(maxVersion)
         }
@@ -116,4 +112,3 @@ export function useSlideVersions() {
     resetVersions
   }
 }
-

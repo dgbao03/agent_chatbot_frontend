@@ -32,7 +32,6 @@ export function ForgotPasswordPage() {
     setIsSubmitting(true)
 
     try {
-      // Check providers first - if account uses only Google, show specific message
       const { providers, error: providersError } = await authService.checkUserAuthProviders(email)
       if (providersError) {
         setError(providersError)
@@ -48,7 +47,6 @@ export function ForgotPasswordPage() {
         return
       }
 
-      // Has email provider or user not found - proceed with reset link
       const { error } = await authService.resetPasswordForEmail(email)
       
       if (error) {
@@ -76,23 +74,19 @@ export function ForgotPasswordPage() {
 
   return (
     <div className="flex flex-col h-screen bg-white">
-      {/* Header */}
       <header className="border-b border-gray-200 px-6 py-4 flex-shrink-0">
         <h1 className="text-lg font-semibold text-gray-900">
           Chat Assistant
         </h1>
       </header>
 
-      {/* Main Content */}
       <div className="flex-1 flex items-center justify-center px-6 py-8">
         <div className="max-w-md w-full">
-          {/* Title */}
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">Forgot Password</h2>
             <p className="text-gray-600">Enter your email to receive a password reset link</p>
           </div>
 
-          {/* Google-only account message */}
           {isGoogleOnly ? (
             <div className="mb-6 p-6 bg-gray-50 border border-gray-200 rounded-2xl text-center">
               <p className="text-sm text-gray-700 mb-1">
@@ -147,14 +141,12 @@ export function ForgotPasswordPage() {
             </div>
           ) : (
             <>
-              {/* Error Message */}
               {error && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl">
                   <p className="text-sm text-red-600">{error}</p>
                 </div>
               )}
 
-              {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
@@ -187,7 +179,6 @@ export function ForgotPasswordPage() {
                 </button>
               </form>
 
-              {/* Footer */}
               <div className="mt-6 text-center">
                 <p className="text-gray-600">
                   Remember your password?{' '}
@@ -203,4 +194,3 @@ export function ForgotPasswordPage() {
     </div>
   )
 }
-

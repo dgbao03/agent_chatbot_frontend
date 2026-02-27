@@ -26,7 +26,6 @@ export function FullscreenPresentation({
   const containerRef = useRef<HTMLDivElement>(null)
   const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Enter fullscreen on mount
   useEffect(() => {
     const enterFullscreen = async () => {
       try {
@@ -34,19 +33,16 @@ export function FullscreenPresentation({
           await document.documentElement.requestFullscreen()
           setIsFullscreen(true)
         } else {
-          // Fallback: Custom fullscreen overlay
           setIsFullscreen(true)
         }
       } catch (error) {
         console.error('Error entering fullscreen:', error)
-        // Fallback to custom overlay
         setIsFullscreen(true)
       }
     }
 
     enterFullscreen()
 
-    // Listen to fullscreen changes
     const handleFullscreenChange = () => {
       const isCurrentlyFullscreen = !!(
         document.fullscreenElement ||
@@ -70,7 +66,6 @@ export function FullscreenPresentation({
     }
   }, [onExit])
 
-  // Exit fullscreen on unmount
   useEffect(() => {
     return () => {
       if (document.fullscreenElement) {
@@ -79,7 +74,6 @@ export function FullscreenPresentation({
     }
   }, [])
 
-  // Auto-hide controls
   useEffect(() => {
     const handleMouseMove = () => {
       setShowControls(true)
@@ -95,7 +89,6 @@ export function FullscreenPresentation({
 
     if (isFullscreen) {
       window.addEventListener('mousemove', handleMouseMove)
-      // Initial timeout
       controlsTimeoutRef.current = setTimeout(() => {
         setShowControls(false)
       }, 3000)
@@ -120,7 +113,6 @@ export function FullscreenPresentation({
     onExit()
   }
 
-  // Keyboard navigation
   useEffect(() => {
     if (!isFullscreen) return
 
@@ -170,23 +162,19 @@ export function FullscreenPresentation({
   const currentPage = pages[currentSlideIndex]
   if (!currentPage) return null
 
-  // Calculate scale to fit screen (contain strategy - show full slide, no cropping)
   const slideWidth = 1280
   const slideHeight = 720
   const windowWidth = window.innerWidth
   const windowHeight = window.innerHeight
-  // Use Math.min to ensure entire slide is visible (may have small borders but no cropping)
-  // Leave some padding for controls (90% of height, 95% of width)
   const scaleX = (windowWidth * 0.95) / slideWidth
   const scaleY = (windowHeight * 0.9) / slideHeight
-  const scale = Math.min(scaleX, scaleY) // Scale to fit, can scale up if screen is larger
+  const scale = Math.min(scaleX, scaleY)
 
   return createPortal(
     <div
       ref={containerRef}
       className="fixed inset-0 bg-black z-[9999] flex items-center justify-center overflow-hidden"
     >
-      {/* Slide Container */}
       <div
         className="bg-white flex-shrink-0"
         style={{
@@ -204,13 +192,11 @@ export function FullscreenPresentation({
         />
       </div>
 
-      {/* Controls Overlay */}
       <div
         className={`absolute inset-0 pointer-events-none transition-opacity duration-300 ${
           showControls ? 'opacity-100' : 'opacity-0'
         }`}
       >
-        {/* Exit Button - Top Right */}
         <button
           onClick={handleExit}
           className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 rounded-lg text-white pointer-events-auto transition-colors"
@@ -221,9 +207,7 @@ export function FullscreenPresentation({
           </svg>
         </button>
 
-        {/* Navigation Controls - Bottom Center */}
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-4 pointer-events-auto">
-          {/* Previous Button */}
           <button
             onClick={handlePrevSlide}
             disabled={currentSlideIndex === 0}
@@ -235,12 +219,10 @@ export function FullscreenPresentation({
             </svg>
           </button>
 
-          {/* Slide Counter */}
           <div className="px-4 py-2 bg-black/50 rounded-lg text-white text-sm font-medium">
             Slide {currentSlideIndex + 1}/{pages.length}
           </div>
 
-          {/* Next Button */}
           <button
             onClick={handleNextSlide}
             disabled={currentSlideIndex === pages.length - 1}
@@ -257,4 +239,3 @@ export function FullscreenPresentation({
     document.body
   )
 }
-

@@ -9,7 +9,6 @@ export function Header({ onToggleSidebar, showSidebarToggle = false }: HeaderPro
     <header className="border-b border-gray-200 px-6 py-4 flex-shrink-0">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          {/* Sidebar toggle button - only show on mobile when specified */}
           {showSidebarToggle && (
             <button
               onClick={onToggleSidebar}

@@ -44,15 +44,12 @@ export function DownloadModal({ isOpen, onClose }: DownloadModalProps) {
 
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
-      {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
       
-      {/* Modal */}
       <div className="relative bg-white rounded-lg shadow-xl w-[90%] max-w-[480px] p-5">
-        {/* Close Button */}
         <button
           onClick={onClose}
           className="absolute top-3 right-3 p-1 hover:bg-gray-100 rounded-lg transition-colors"
@@ -63,19 +60,16 @@ export function DownloadModal({ isOpen, onClose }: DownloadModalProps) {
           </svg>
         </button>
 
-        {/* Title */}
         <h2 className="text-lg font-semibold text-gray-900 mb-4 pr-8">
           Select Download Format
         </h2>
         
-        {/* Download Options */}
         <div className="space-y-2">
           {downloadOptions.map((option) => (
             <div
               key={option.id}
               className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              {/* Icon */}
               <div className={`w-10 h-10 ${option.iconColor} rounded-lg flex items-center justify-center flex-shrink-0`}>
                 {option.id === 'google-slides' ? (
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,7 +80,6 @@ export function DownloadModal({ isOpen, onClose }: DownloadModalProps) {
                 )}
               </div>
 
-              {/* Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <h3 className="text-sm font-medium text-gray-900">{option.title}</h3>
@@ -98,7 +91,6 @@ export function DownloadModal({ isOpen, onClose }: DownloadModalProps) {
                 </div>
               </div>
 
-              {/* Download Button */}
               <button
                 disabled
                 className="px-3 py-1.5 text-sm bg-gray-200 text-gray-500 rounded-lg font-medium cursor-not-allowed flex-shrink-0"
@@ -113,4 +105,3 @@ export function DownloadModal({ isOpen, onClose }: DownloadModalProps) {
     document.body
   )
 }
-

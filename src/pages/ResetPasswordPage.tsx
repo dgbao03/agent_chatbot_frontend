@@ -194,7 +194,6 @@ export function ResetPasswordPage() {
                   )}
                 </button>
               </div>
-              {/* Password Strength Checklist */}
               {password && !passwordStrength.isValid && (
                 <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-xl">
                   <p className="text-xs font-medium text-gray-700 mb-2">Password requirements:</p>

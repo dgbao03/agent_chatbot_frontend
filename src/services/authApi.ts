@@ -4,20 +4,20 @@ import type { AuthUser } from '../types/auth'
 const AUTH_PREFIX = `${API_BASE_URL}/auth`
 
 function mapError(status: number, detail: string | { detail?: string }): string {
-  const msg = typeof detail === 'string' ? detail : detail?.detail || 'Có lỗi xảy ra'
+  const msg = typeof detail === 'string' ? detail : detail?.detail || 'An error occurred'
   switch (status) {
     case 400:
-      if (msg.toLowerCase().includes('email') && msg.toLowerCase().includes('registered')) return 'Email đã được đăng ký'
+      if (msg.toLowerCase().includes('email') && msg.toLowerCase().includes('registered')) return 'Email is already registered'
       if (msg.toLowerCase().includes('invalid') && msg.toLowerCase().includes('reset')) return 'Invalid or expired reset link. Please request a new one.'
       return msg
     case 401:
-      if (msg.toLowerCase().includes('invalid') && msg.toLowerCase().includes('password')) return 'Email hoặc mật khẩu không đúng'
-      if (msg.toLowerCase().includes('token')) return 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.'
+      if (msg.toLowerCase().includes('invalid') && msg.toLowerCase().includes('password')) return 'Invalid email or password'
+      if (msg.toLowerCase().includes('token')) return 'Session expired. Please sign in again.'
       return msg
     case 500:
-      return 'Lỗi máy chủ. Vui lòng thử lại sau.'
+      return 'Server error. Please try again later.'
     default:
-      return msg || 'Có lỗi xảy ra'
+      return msg || 'An error occurred'
   }
 }
 

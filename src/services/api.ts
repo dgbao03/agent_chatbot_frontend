@@ -87,12 +87,11 @@ export const chatService = {
     } else if (data.error) {
       throw new Error(data.error)
     } else {
-      throw new Error('Không nhận được phản hồi từ server')
+      throw new Error('No response received from server')
     }
   },
 }
 
-/** Version info from API - maps timestamp from created_at */
 interface VersionInfoApi {
   version: number
   total_pages: number
@@ -102,7 +101,6 @@ interface VersionInfoApi {
   user_request?: string | null
 }
 
-/** Version content from API */
 interface VersionContentApi {
   pages: PageContent[]
   total_pages: number
@@ -130,8 +128,6 @@ export const slideService = {
       user_request: v.user_request ?? '',
       is_current: v.is_current,
     }))
-    // Reverse: backend returns [newest, ..., oldest], UI expects [oldest, ..., newest]
-    // So Version 1 = oldest, Version N = newest (chronological)
     return mapped.reverse()
   },
 
@@ -175,7 +171,7 @@ export const slideService = {
           return currentVersionInfo.version
         }
       } catch {
-        // Continue to check other versions
+        void 0
       }
     }
 

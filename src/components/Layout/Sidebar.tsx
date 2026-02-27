@@ -37,18 +37,14 @@ export function Sidebar({
   const [isSearching, setIsSearching] = useState(false)
   const menuRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
   
-  // Sync selectedConversationId with URL
   const currentConversationId = urlConversationId || selectedConversationId || null
 
-  // Fetch conversations on mount
   useEffect(() => {
     fetchConversations()
   }, [])
 
-  // Listen for conversation created event
   useEffect(() => {
     const handleConversationCreated = () => {
-      // Refresh conversations list
       fetchConversations()
     }
 
@@ -70,13 +66,10 @@ export function Sidebar({
   }
 
   const handleNewChat = () => {
-    // Chỉ navigate, không tạo conversation
-    // Conversation sẽ được tạo khi user gửi message đầu tiên
     navigate('/chat', { replace: false })
     onNewConversation()
   }
 
-  // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (openMenuId && menuRefs.current[openMenuId]) {
@@ -158,10 +151,8 @@ export function Sidebar({
       return
     }
 
-    // Remove from list
     setConversations(prev => prev.filter(c => c.id !== deleteConversationId))
     
-    // If deleted conversation was selected, navigate to base chat URL
     if (currentConversationId === deleteConversationId) {
       navigate('/chat', { replace: true })
       onNewConversation()
@@ -178,7 +169,6 @@ export function Sidebar({
     setDeleteConversationTitle('')
   }
 
-  // Filter conversations based on search query
   const filteredConversations = useMemo(() => {
     if (!searchQuery.trim()) return []
     
@@ -189,11 +179,9 @@ export function Sidebar({
     })
   }, [conversations, searchQuery])
 
-  // Handle search loading state
   useEffect(() => {
     if (searchQuery.trim()) {
       setIsSearching(true)
-      // Simulate a small delay to show loading indicator
       const timer = setTimeout(() => {
         setIsSearching(false)
       }, 150)
@@ -205,7 +193,6 @@ export function Sidebar({
 
   return (
     <>
-      {/* Sidebar */}
       <div
         className={`
           fixed md:relative top-0 left-0 h-full
@@ -221,7 +208,6 @@ export function Sidebar({
         }}
       >
         {isCollapsed ? (
-          /* Collapsed view - Icon buttons only */
           <div 
             className="flex flex-col h-full"
             style={{
@@ -229,7 +215,6 @@ export function Sidebar({
             }}
           >
             <div className="flex-1 flex flex-col items-center gap-3 p-3 overflow-y-auto">
-            {/* Expand button */}
             <button
               onClick={() => setIsCollapsed(false)}
               className="p-3 hover:bg-gray-200 rounded-lg transition-colors"
@@ -240,7 +225,6 @@ export function Sidebar({
               </svg>
             </button>
 
-            {/* New chat button */}
             <button
               onClick={handleNewChat}
               className="p-3 hover:bg-gray-200 rounded-lg transition-colors"
@@ -251,7 +235,6 @@ export function Sidebar({
               </svg>
             </button>
 
-            {/* Search button */}
             <button
               onClick={() => setShowSearchModal(true)}
               className="p-3 hover:bg-gray-200 rounded-lg transition-colors"
@@ -263,24 +246,19 @@ export function Sidebar({
             </button>
             </div>
 
-            {/* User Menu - Fixed at bottom */}
             <div className="flex-shrink-0 p-2 border-t border-gray-200 bg-gray-50 flex items-center justify-center">
               <UserMenu isCollapsed={true} />
             </div>
           </div>
         ) : (
-          /* Expanded view - Full UI */
           <div 
             className="flex flex-col h-full"
             style={{
               animation: 'fadeIn 0.3s ease-in-out 0.2s both'
             }}
           >
-            {/* Header with Message icon, Collapse button, Search button, and New Chat button */}
             <div className="p-3 border-b border-gray-200 space-y-2 flex-shrink-0">
-              {/* Message icon and Collapse button */}
               <div className="flex items-center justify-between">
-                {/* Message icon - Left */}
                 <button
                   onClick={() => {
                     navigate('/chat', { replace: false })
@@ -294,10 +272,8 @@ export function Sidebar({
                   </svg>
                 </button>
                 
-                {/* Collapse/Close button - Right */}
                 <button
                   onClick={() => {
-                    // Mobile: Close sidebar, Desktop: Collapse sidebar
                     if (window.innerWidth < 768) {
                       onClose()
                     } else {
@@ -313,7 +289,6 @@ export function Sidebar({
                 </button>
               </div>
               
-              {/* Search button */}
               <button
                 onClick={() => setShowSearchModal(true)}
                 className="w-full flex items-center gap-2 px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
@@ -324,7 +299,6 @@ export function Sidebar({
                 <span className="text-sm text-gray-900 whitespace-nowrap">Search chat</span>
               </button>
               
-              {/* New Chat button */}
               <button 
                 onClick={handleNewChat}
                 className="w-full flex items-center gap-2 px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
@@ -336,7 +310,6 @@ export function Sidebar({
               </button>
             </div>
 
-            {/* Conversations List */}
             <div className="flex-1 overflow-y-auto p-3 space-y-1">
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
@@ -447,7 +420,6 @@ export function Sidebar({
               )}
             </div>
 
-            {/* User Menu - Fixed at bottom */}
             <div className="flex-shrink-0 p-3 border-t border-gray-200 bg-gray-50">
               <UserMenu isCollapsed={false} />
             </div>
@@ -455,10 +427,8 @@ export function Sidebar({
         )}
       </div>
 
-      {/* Search Modal - Using Portal to render outside sidebar */}
       {showSearchModal && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center">
-          {/* Backdrop */}
           <div 
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => {
@@ -468,9 +438,7 @@ export function Sidebar({
             }}
           />
           
-          {/* Modal */}
           <div className="relative bg-white rounded-lg shadow-xl w-[90%] max-w-[600px] h-[600px] flex flex-col">
-            {/* Header */}
             <div className="p-6 border-b border-gray-200 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900">
                 Search chat
@@ -489,7 +457,6 @@ export function Sidebar({
               </button>
             </div>
 
-            {/* Search Input */}
             <div className="p-6 border-b border-gray-200">
               <div className="relative">
                 <svg 
@@ -511,7 +478,6 @@ export function Sidebar({
               </div>
             </div>
 
-            {/* New Chat Button */}
             <div className="px-6 py-4 border-b border-gray-200">
               <button
                 onClick={() => {
@@ -529,7 +495,6 @@ export function Sidebar({
               </button>
             </div>
 
-            {/* Search Results */}
             <div className="flex-1 overflow-y-auto p-6 min-h-0">
               {searchQuery.trim() ? (
                 isSearching ? (
@@ -585,18 +550,14 @@ export function Sidebar({
         document.body
       )}
 
-      {/* Delete Confirmation Modal - Using Portal to render outside sidebar */}
       {showDeleteModal && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center">
-          {/* Backdrop */}
           <div 
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={handleDeleteCancel}
           />
           
-          {/* Modal */}
           <div className="relative bg-white rounded-lg shadow-xl w-[90%] max-w-[450px] p-6">
-            {/* Close Button */}
             <button
               onClick={handleDeleteCancel}
               className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-lg transition-colors"
@@ -607,17 +568,14 @@ export function Sidebar({
               </svg>
             </button>
 
-            {/* Title */}
             <h2 className="text-xl font-semibold text-gray-900 mb-4 pr-8">
               Delete conversation
             </h2>
 
-            {/* Message */}
             <p className="text-base text-gray-600 mb-6">
               Are you sure you want to delete <span className="font-medium text-gray-900">"{deleteConversationTitle}"</span>? This action cannot be undone.
             </p>
 
-            {/* Buttons */}
             <div className="flex gap-3 justify-end">
               <button
                 onClick={handleDeleteCancel}
@@ -637,7 +595,6 @@ export function Sidebar({
         document.body
       )}
       
-      {/* CSS animation keyframes */}
       <style>{`
         @keyframes fadeIn {
           from {
@@ -651,4 +608,3 @@ export function Sidebar({
     </>
   )
 }
-
