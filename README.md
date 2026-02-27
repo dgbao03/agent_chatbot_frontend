@@ -1,8 +1,8 @@
-# Agent Chat — Frontend
+# Agent Chat Application (Frontend)
 
 A React-based chat interface powered by a LLM backend. Supports conversation management, AI-generated slide presentations, and full authentication flows.
 
-> **Backend repository:** [agent_chat_application_backend](https://github.com/dgbao03/agent_chat_application_backend)
+> **Backend Repository:** [agent_chat_application_backend](https://github.com/dgbao03/agent_chat_application_backend)
 
 ---
 
@@ -14,14 +14,14 @@ A React-based chat interface powered by a LLM backend. Supports conversation man
 - Forgot password / reset password via email link
 - Persistent sessions with automatic token refresh
 
-### Chat
+### Agent Chat
 - Real-time conversation with an LLM agent
 - Markdown rendering with syntax-highlighted code blocks
 - Conversation history with sidebar navigation
 - Rename and delete conversations
 - Search across all conversations
 
-### AI Slide Viewer
+### AI Generated Presentation 
 - Preview AI-generated HTML slide presentations inline
 - Multi-page slide navigation
 - Version history — browse and switch between previous versions
@@ -48,7 +48,7 @@ A React-based chat interface powered by a LLM backend. Supports conversation man
 ### Prerequisites
 
 - Node.js 18+
-- Backend server running — see [backend repo](https://github.com/dgbao03/agent_chat_application_backend)
+- Backend server running — [Backend Repository](https://github.com/dgbao03/agent_chat_application_backend)
 
 ### Installation
 
@@ -98,3 +98,18 @@ The app will be available at `http://localhost:5174`.
 ![Chat UI 2](https://res.cloudinary.com/dw3x8orox/image/upload/v1772208933/Screenshot_2026-02-27_at_23.12.52_hrwaoq.png)
 
 ![Chat UI 3](https://res.cloudinary.com/dw3x8orox/image/upload/v1772208933/Screenshot_2026-02-27_at_23.13.33_uc2umz.png)
+
+---
+
+## License
+
+MIT License
+
+Copyright (c) 2026 BaoDo
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+()
