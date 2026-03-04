@@ -2,7 +2,7 @@
 
 A React-based chat interface powered by a LLM backend. Supports conversation management, AI-generated slide presentations, and full authentication flows.
 
-> **Backend Repository:** [agent_chat_application_backend](https://github.com/dgbao03/agent_chat_application_backend)
+> **Backend Repository:** [agent_chat_application_backend](https://github.com/dgbao03/agent_chatbot_backend)
 
 ---
 
